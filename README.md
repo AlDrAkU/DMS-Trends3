@@ -1,0 +1,13 @@
+<!-- RabbitMQ -->
+## RabbitMQ
+<!-- RabbitMQ Docker -->
+### RabbitMQ - Docker
+
+Build Image:
+```sh
+docker build -t rabbitmq .
+```
+Run Container:
+```sh
+docker run -d --name rabbitmq_container -p 5672:5672 -p 15672:15672 rabbitmq
+```
