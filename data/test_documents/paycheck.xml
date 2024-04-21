@@ -1,0 +1,32 @@
+<paycheck>
+    <documentType>Pay-01</documentType>
+    <header>
+        <title>Paycheck - August 2023</title>
+        <periodStart>01/08/2023</periodStart>
+        <periodEnd>31/08/2023</periodEnd>
+        <processingDate>26/8/2023</processingDate>
+    </header>
+    <employeeInformation>
+        <id>001</id>
+        <name>Steven Stevenson</name>
+        <position>Project Manager</position>
+        <department>HR</department>
+    </employeeInformation>
+    <earnings>
+        <basicSalary>
+            <description>Basic Salary</description>
+            <amount>4500</amount>
+        </basicSalary>
+    </earnings>
+    <deductions>
+        <tax>
+            <description>Tax Deduction</description>
+            <amount>2000</amount>
+        </tax>
+    </deductions>
+    <netPay>2500</netPay>
+    <employerInformation>
+        <companyName>Stevenson and Sons.</companyName>
+        <address>Stevensonstreet 04, 3600 Genk</address>
+    </employerInformation>
+</paycheck>
