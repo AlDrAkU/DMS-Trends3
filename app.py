@@ -30,7 +30,9 @@ def queue():
     xml_data = request.data
 
     # Set up a connection to RabbitMQ
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', 5672, '/', pika.PlainCredentials('admin', 'admin')))
+
+
     channel = connection.channel()
 
     # Declare a queue
@@ -53,7 +55,7 @@ def dequeue():
         description: XML dequeued successfully
     """
     # Set up a connection to RabbitMQ
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', 5672, '/', pika.PlainCredentials('admin', 'admin')))
     channel = connection.channel()
 
     # Declare the same queue
