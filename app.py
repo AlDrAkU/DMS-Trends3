@@ -1,11 +1,15 @@
 from flask import Flask, request, jsonify
 from flasgger import Swagger
 import pika
+import json
+from utils import build_response_message
+import secrets
 
 app = Flask(__name__)
 swagger = Swagger(app)
 
-@app.route('/queue', methods=['POST'])
+
+@app.route("/queue", methods=["POST"])
 def queue():
     """
     Queue XML on RabbitMQ
@@ -30,22 +34,40 @@ def queue():
     xml_data = request.data
 
     # Set up a connection to RabbitMQ
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', 5672, '/', pika.PlainCredentials('admin', 'admin')))
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
+        )
+    )
 
-
+    correlation_id = secrets.token_hex(4)
     channel = connection.channel()
 
     # Declare a queue
-    channel.queue_declare(queue='xml_queue')
+    channel.queue_declare(queue="xml_queue")
 
     # Publish the XML data to the queue
-    channel.basic_publish(exchange='', routing_key='xml_queue', body=xml_data)
+    channel.basic_publish(exchange="", routing_key="xml_queue", body=xml_data)
+
+    # Declare the status_queue
+    channel.queue_declare(queue="status_queue")
+
+    # Prepare the status message
+    status_message = build_response_message(
+        correlation_id, "XML queued successfully", "no error message"
+    )
+
+    # Publish the status message to the status_queue
+    channel.basic_publish(
+        exchange="", routing_key="status_queue", body=json.dumps(status_message)
+    )
 
     connection.close()
 
-    return jsonify({'status': 'XML queued successfully'}), 200
+    return jsonify({"status": "XML queued successfully"}), 200
 
-@app.route('/dequeue', methods=['GET'])
+
+@app.route("/dequeue", methods=["GET"])
 def dequeue():
     """
     Dequeue XML from RabbitMQ
@@ -55,24 +77,43 @@ def dequeue():
         description: XML dequeued successfully
     """
     # Set up a connection to RabbitMQ
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost', 5672, '/', pika.PlainCredentials('admin', 'admin')))
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
+        )
+    )
     channel = connection.channel()
 
     # Declare the same queue
-    channel.queue_declare(queue='xml_queue')
-
+    channel.queue_declare(queue="xml_queue")
+    # add message to response que
     # Get the next message from the queue
-    method_frame, header_frame, body = channel.basic_get('xml_queue')
+    method_frame, header_frame, body = channel.basic_get("xml_queue")
 
     if method_frame:
         # Acknowledge the message
         channel.basic_ack(method_frame.delivery_tag)
+
+        # Declare the status_queue
+        channel.queue_declare(queue="status_queue")
+
+        # Prepare the status message
+        status_message = build_response_message(
+            "correlation_id", "XML dequeued successfully", "no error message"
+        )
+
+        # Publish the status message to the status_queue
+        channel.basic_publish(
+            exchange="", routing_key="status_queue", body=json.dumps(status_message)
+        )
+
         connection.close()
-        return jsonify({'status': 'XML dequeued successfully', 'xml': body.decode()}), 200
+        return jsonify(status_message, {"xml": body.decode()}), 200
     else:
         connection.close()
-        return jsonify({'status': 'No more messages in the queue'}), 200
+        return jsonify({"status": "No more messages in the queue"}), 200
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print(app.url_map)
     app.run(debug=True)
