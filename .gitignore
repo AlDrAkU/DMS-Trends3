@@ -1,1 +1,5 @@
 RepositoryService_Test/
+.venv/
+.idea/
+.pytest_cache/
+__pycache__/
