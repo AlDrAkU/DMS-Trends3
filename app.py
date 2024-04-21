@@ -43,5 +43,34 @@ def queue():
 
     return jsonify({'status': 'XML queued successfully'}), 200
 
+@app.route('/dequeue', methods=['GET'])
+def dequeue():
+    """
+    Dequeue XML from RabbitMQ
+    ---
+    responses:
+      200:
+        description: XML dequeued successfully
+    """
+    # Set up a connection to RabbitMQ
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+
+    # Declare the same queue
+    channel.queue_declare(queue='xml_queue')
+
+    # Get the next message from the queue
+    method_frame, header_frame, body = channel.basic_get('xml_queue')
+
+    if method_frame:
+        # Acknowledge the message
+        channel.basic_ack(method_frame.delivery_tag)
+        connection.close()
+        return jsonify({'status': 'XML dequeued successfully', 'xml': body.decode()}), 200
+    else:
+        connection.close()
+        return jsonify({'status': 'No more messages in the queue'}), 200
+
 if __name__ == '__main__':
+    print(app.url_map)
     app.run(debug=True)
