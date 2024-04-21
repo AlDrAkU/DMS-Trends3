@@ -99,7 +99,7 @@ def dequeue():
 
         # Prepare the status message
         status_message = build_response_message(
-            "correlation_id", "XML dequeued successfully", "no error message"
+            "correlation_id", "XML dequeued successfully", body.decode()
         )
 
         # Publish the status message to the status_queue
@@ -108,7 +108,7 @@ def dequeue():
         )
 
         connection.close()
-        return jsonify(status_message, {"xml": body.decode()}), 200
+        return jsonify(status_message), 200
     else:
         connection.close()
         return jsonify({"status": "No more messages in the queue"}), 200
