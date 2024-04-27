@@ -9,7 +9,7 @@ services:
       RABBITMQ_DEFAULT_USER: "admin"
       RABBITMQ_DEFAULT_PASS: "admin"
   postgres:
-    image: postgres:9.6
+    image: postgres:16.2
     ports:
       - "5432:5432"
     environment:
