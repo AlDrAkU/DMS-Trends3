@@ -1,0 +1,24 @@
+<paycheck>
+    <documentType>Pay-01</documentType>
+    <header>
+        <title>Paycheck - August 2023</title>
+        <periodStart>01/08/2023</periodStart>
+        <periodEnd>31/08/2023</periodEnd>
+    </header>
+    <employeeInformation>
+        <id>001</id>
+        <name>Steven Stevenson</name>
+        <department>HR</department>
+    </employeeInformation>
+    <earnings>
+        <basicSalary>
+            <description>Basic Salary</description>
+            <amount>4500</amount>
+        </basicSalary>
+    </earnings>
+    <netPay>2500</netPay>
+    <employerInformation>
+        <companyName>Stevenson and Sons.</companyName>
+        <address>Stevensonstreet 04, 3600 Genk</address>
+    </employerInformation>
+</paycheck>

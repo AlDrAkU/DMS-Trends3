@@ -1,0 +1,47 @@
+<invoice>
+    <documentType>INV-01</documentType>
+    <header>
+        <companyName>Brico</companyName>
+        <address>Alfons Gossetlaan 46 1702 Groot-Bijgaarden</address>
+        <website>https://www.brico.be/nl/</website>
+        <phone>0800 12 365</phone>
+    </header>
+    <billTo>
+        <name>AS Adventure</name>
+        <address>Retail Concepts NV, Smallandlaan 9, 2660 Hoboken</address>
+        <email>team@asadventure.com</email>
+        <phone>+32 (0)3 828 30 15</phone>
+    </billTo>
+    <invoiceInfo>
+        <number>6000001</number>
+        <date>18/04/2024</date>
+    </invoiceInfo>
+    <items>
+        <item>
+            <description>Ceramic Floor Tile</description>
+            <size>12x12 inches</size>
+            <finish>Glossy</finish>
+            <quantity>100</quantity>
+            <unitPrice>1.50</unitPrice>
+            <total>150.00</total>
+        </item>
+        <item>
+            <description>Porcelain Floor Tile</description>
+            <size>24x24 inches</size>
+            <unitPrice>2.00</unitPrice>
+            <total>100.00</total>
+        </item>
+    </items>
+    <summary>
+        <subTotal>250.00</subTotal>
+        <discount>0.00</discount>
+        <totalLessDiscount>250.00</totalLessDiscount>
+        <taxRate>8.00</taxRate>
+        <totalTax>20.00</totalTax>
+        <balanceDue>270.00</balanceDue>
+    </summary>
+    <termsAndInstructions>
+        <instruction>Payment Instructions</instruction>
+        <warranty>Product Warranty Information</warranty>
+    </termsAndInstructions>
+</invoice>
