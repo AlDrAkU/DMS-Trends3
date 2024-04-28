@@ -4,8 +4,10 @@ import pika
 import json
 from utils import build_response_message, map_to_json
 import secrets
-import xml.etree.ElementTree as ET
-from data_access.models import docTypeModel, InvoiceModel, PaycheckModel, EarningItem, DeductionItem, InvoiceItem, InvoiceSummary
+from datetime import datetime
+from data_access.models import docTypeModel, InvoiceModel, PaycheckModel, EarningItem, DeductionItem, InvoiceItem, \
+    InvoiceSummary, FileModel
+import os
 app = Flask(__name__)
 swagger = Swagger(app)
 
@@ -179,7 +181,7 @@ def dequeue():
         # Publish the status message to the status_queue
         channel.queue_declare(queue="status_queue")
         status_message = build_response_message(
-            correlation_id, "XML dequeued successfully", doc_model.dict()
+            correlation_id, "XML dequeued successfully", doc_model.model_dump()
         )
         channel.basic_publish(
             exchange="", routing_key="status_queue", body=json.dumps(status_message)
@@ -198,26 +200,48 @@ def store():
     """
     Store XML in a database
     ---
+    parameters:
+      - name: body
+        in: body
+        required: true
     responses:
       200:
         description: XML stored successfully
     """
-    # get xml from queue
+    # Parse the request data into a FileModel instance
+    file_model = FileModel.model_validate(request.get_json())
+
+    # Now you can access the data and storage_type fields
+    xml_data = file_model.data
+    storage_type = file_model.storage_type
+    correlation_id = secrets.token_hex(4)
+    dir_path = f'./data/storage/{storage_type}/{datetime.today().date()}'
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    file_path = f'{dir_path}/{correlation_id}.json'
+    with open(file_path, 'w') as f:
+        if type(xml_data) == InvoiceModel:
+            json.dump(xml_data.to_dict(), f)
+        elif type(xml_data) == PaycheckModel:
+            json.dump(xml_data.to_dict(), f)
+    # saving document uuid, name and timestamp and status to db
+
+    # post status update to status queue
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
             "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
         )
     )
+    channel = connection.channel()
+    channel.queue_declare(queue="status_queue")
+    status_message = build_response_message(
+            correlation_id, f"XML {correlation_id} stored successfully", "no error message")
+    channel.basic_publish(
+            exchange="", routing_key="status_queue", body=json.dumps(status_message)
+        )
 
-    # validation
-
-    # saving document to storage
-
-    # saving document uuid, name and timestamp and status to db
-
-    # post status update to status queue
-
-    return jsonify({"status": "XML stored successfully"}), 200
+    connection.close()
+    return jsonify({"status": "XML stored successfully", "uuid":file_path, "correlation_id":correlation_id}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

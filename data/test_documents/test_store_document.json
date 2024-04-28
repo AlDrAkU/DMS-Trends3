@@ -1,0 +1,36 @@
+{
+  "data": {
+    "address": "Alfons Gossetlaan 46 1702 Groot-Bijgaarden",
+    "billToAddress": "Retail Concepts NV, Smallandlaan 9, 2660 Hoboken",
+    "billToPhone": "+32 (0)3 828 30 15",
+    "companyName": "Brico",
+    "date": "18/04/2024",
+    "documentType": "INV-01",
+    "dueDate": "30/04/2024",
+    "email": "team@asadventure.com",
+    "instruction": "Payment Instructions",
+    "items": [
+      {
+        "description": "Porcelain Floor Tile",
+        "finish": "Matte",
+        "quantity": 50,
+        "size": "24x24 inches",
+        "total": 100,
+        "unitPrice": 2
+      }
+    ],
+    "name": "AS Adventure",
+    "number": 6000001,
+    "phone": "0800 12 365",
+    "summary": {
+      "balanceDue": 270,
+      "discount": 0,
+      "subTotal": 250,
+      "taxRate": 8,
+      "totalLessDiscount": 250,
+      "totalTax": 20
+    },
+    "warranty": "Product Warranty Information",
+    "website": "https://www.brico.be/nl/"
+  }
+}
