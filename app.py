@@ -93,6 +93,8 @@ def dequeue():
 
         data = map_to_json(body)
 
+        correlation_id = secrets.token_hex(4)
+
         # Load the dictionary into the Pydantic model
         try:
             doc_type = data.get("documentType")
@@ -173,10 +175,17 @@ def dequeue():
                 doc_model = docTypeModel(**data)
             
         except Exception as e:
+            # Publish the status message to the status_queue
+            channel.queue_declare(queue="status_queue")
+            status_message = build_response_message(
+                correlation_id, {"error": "Failed to parse XML: {}".format(str(e))},body.decode()
+            )
+            channel.basic_publish(
+                exchange="", routing_key="status_queue", body=json.dumps(status_message)
+            )
             connection.close()
             return jsonify({"error": "Failed to parse XML: {}".format(str(e))}), 400
 
-        correlation_id = secrets.token_hex(4)
 
         # Publish the status message to the status_queue
         channel.queue_declare(queue="status_queue")
@@ -192,7 +201,6 @@ def dequeue():
     else:
         connection.close()
         return jsonify({"status": "No more messages in the queue"}), 200
-
 
 
 @app.route("/store", methods=["POST"])
