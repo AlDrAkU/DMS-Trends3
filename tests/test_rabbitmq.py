@@ -36,7 +36,7 @@ class TestRabbitMQ(unittest.TestCase):
         )
         assert response.status_code == 200
         response_data = json.loads(response.data)
-        assert response_data["status"] == "XML INV-01 - 6000001 queued successfully"
+        assert response_data["status"] == f"XML queued successfully"
 
     def test_dequeue_get(self):
         # Send a GET request to the /dequeue endpoint

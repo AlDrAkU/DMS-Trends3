@@ -61,7 +61,7 @@ def queue():
 
     connection.close()
 
-    return jsonify({"status": f"XML {correlation_id} queued successfully"}), 200
+    return jsonify({"status": "XML queued successfully"}), 200
 
 
 @app.route("/dequeue", methods=["GET"])
