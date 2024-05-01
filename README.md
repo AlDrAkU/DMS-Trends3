@@ -36,4 +36,9 @@ To view or edit the database, you can use psql. It enables you to interact with 
 docker exec -it <container_id> psql -U postgres -d DMS
 ```
 
+<!-- Repository Service -->
+## Repository Service
+
+The app.py generates a swagger page where the api's can be tested. When running the application it can be accessed with this URL:
+http://localhost:5000/apidocs/
 
