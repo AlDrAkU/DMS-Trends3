@@ -282,6 +282,23 @@ def statusDequeue():
         connection.close()
         return jsonify({"status": "No more messages in the queue"}), 200
     
+def purge_queue(queue_name):
+    """
+    Purge all the messages in the given queue from RabbitMQ
+    """
+    # Set up a connection to RabbitMQ
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
+        )
+    )
+    channel = connection.channel()
+    channel.queue_declare(queue=queue_name)
+    # Purge the queue
+    channel.queue_purge(queue=queue_name)
+    connection.close()
+    return jsonify({"status": "No more messages in the queue"}), 204
+
 @app.route("/purge_status_queue", methods=["DELETE"])
 def statusPurge():
     """
@@ -291,18 +308,18 @@ def statusPurge():
       204:
         description: status queue successfully purged
     """
-    # Set up a connection to RabbitMQ
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(
-            "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
-        )
-    )
-    channel = connection.channel()
-    channel.queue_declare(queue="status_queue")
-    # Purge the status_queue
-    channel.queue_purge(queue="status_queue")
-    connection.close()
-    return jsonify({"status": "No more messages in the queue"}), 204
+    return purge_queue("status_queue")
+
+@app.route("/purge_xml_queue", methods=["DELETE"])
+def xmlPurge():
+    """
+    Purge all the messages in the XML queue from RabbitMQ
+    ---
+    responses:
+      204:
+        description: XML queue successfully purged
+    """
+    return purge_queue("xml_queue")
 
 if __name__ == "__main__":
     app.run(debug=True)
