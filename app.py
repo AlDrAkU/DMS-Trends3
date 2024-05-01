@@ -32,6 +32,7 @@ def queue():
     responses:
       200:
         description: XML queued successfully
+        correlation_id: string
     """
     # Get XML data from the request
     xml_data = request.data
@@ -60,8 +61,8 @@ def queue():
     )
 
     connection.close()
-
-    return jsonify({"status": "XML queued successfully"}), 200
+    # return a json response conatint the correlation_id and the status
+    return jsonify({"status": "XML queued successfully", "correlation_id": correlation_id}), 200
 
 
 @app.route("/dequeue", methods=["GET"])
@@ -250,6 +251,58 @@ def store():
 
     connection.close()
     return jsonify({"status": "XML stored successfully", "uuid":file_path, "correlation_id":correlation_id}), 200
+
+@app.route("/status_dequeue", methods=["GET"])
+def statusDequeue():
+    """
+    Dequeue status message from RabbitMQ
+    ---
+    responses:
+      200:
+        description: status dequeued successfully
+    """
+    # Set up a connection to RabbitMQ
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
+        )
+    )
+    channel = connection.channel()
+    channel.queue_declare(queue="status_queue")
+    # Get the next message from the queue
+    method_frame, header_frame, body = channel.basic_get("status_queue")
+
+    if method_frame:
+        # Acknowledge the message
+        channel.basic_ack(method_frame.delivery_tag)
+        connection.close()
+        # Return the message
+        return jsonify(json.loads(body)), 200
+    else:
+        connection.close()
+        return jsonify({"status": "No more messages in the queue"}), 200
+    
+@app.route("/purge_status_queue", methods=["DELETE"])
+def statusPurge():
+    """
+    Purge all the messages in the status queue from RabbitMQ
+    ---
+    responses:
+      204:
+        description: status queue successfully purged
+    """
+    # Set up a connection to RabbitMQ
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
+        )
+    )
+    channel = connection.channel()
+    channel.queue_declare(queue="status_queue")
+    # Purge the status_queue
+    channel.queue_purge(queue="status_queue")
+    connection.close()
+    return jsonify({"status": "No more messages in the queue"}), 204
 
 if __name__ == "__main__":
     app.run(debug=True)
