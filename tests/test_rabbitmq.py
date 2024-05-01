@@ -30,7 +30,9 @@ class TestRabbitMQ(unittest.TestCase):
         root = tree.getroot()
         return ET.tostring(root, encoding="utf-8").decode("utf-8")
 
-    def test_queue_post(self):
+    def test1_queue_post(self):
+        # purge the xml queue
+        self.client.delete("/purge_xml_queue")
         response = self.client.post(
             "/queue", data=self.xml_invoice, content_type="text/json"
         )
@@ -38,7 +40,7 @@ class TestRabbitMQ(unittest.TestCase):
         response_data = json.loads(response.data)
         assert response_data["status"] == f"XML queued successfully"
 
-    def test_dequeue_get(self):
+    def test2_dequeue_get(self):
         # Send a GET request to the /dequeue endpoint
         response = self.client.get("/dequeue")
         # Check that the response status code is 200
@@ -96,4 +98,20 @@ class TestRabbitMQ(unittest.TestCase):
         response_data = json.loads(response.data)
         assert response.status_code == 400
         assert response_data == {'error': 'Failed to parse XML: 2 validation errors for DeductionItem\ndescription\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.7/v/missing\namount\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.7/v/missing'}
+
+    def test_queue_post_status_queue(self):
+        # Clear the status_queue
+        self.client.delete("/purge_status_queue")
+
+        # Send a POST request to the /queue endpoint
+        response = self.client.post(
+            "/queue", data=self.xml_invoice, content_type="text/json"
+        )
+        # Retrieve the correlation_id from the response
+        response_data = json.loads(response.data)
+        correlation_id = response_data["correlation_id"]
+        # Check that the last message in the status_queue contains the correlation_id of the sent message
+        response = self.client.get("/status_dequeue")
+        response_data = json.loads(response.data)
+        assert response_data["correlation_id"] == correlation_id
 
