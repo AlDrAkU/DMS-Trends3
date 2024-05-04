@@ -8,14 +8,16 @@ from datetime import datetime
 from data_access.models import docTypeModel, InvoiceModel, PaycheckModel, EarningItem, DeductionItem, InvoiceItem, \
     InvoiceSummary, FileModel
 import os
+from rabbitmq_operations import RabbitMQOperations
+
 app = Flask(__name__)
 swagger = Swagger(app)
+rabbitmq = RabbitMQOperations()
 
 
 @app.route("/queue", methods=["POST"])
 def queue():
-    """
-    Queue XML on RabbitMQ
+    """ Queue XML on RabbitMQ
     ---
     parameters:
       - name: body
@@ -34,41 +36,13 @@ def queue():
         description: XML queued successfully
         correlation_id: string
     """
-    # Get XML data from the request
     xml_data = request.data
-
-    # Set up a connection to RabbitMQ
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(
-            "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
-        )
-    )
-
-    correlation_id = secrets.token_hex(4)
-    channel = connection.channel()
-
-    # Declare a queue
-    channel.queue_declare(queue="xml_queue")
-    channel.basic_publish(exchange="", routing_key="xml_queue", body=xml_data)
-    channel.queue_declare(queue="status_queue")
-    status_message = build_response_message(
-        correlation_id, "XML queued successfully", "no error message"
-    )
-
-    # Publish the status message to the status_queue
-    channel.basic_publish(
-        exchange="", routing_key="status_queue", body=json.dumps(status_message)
-    )
-
-    connection.close()
-    # return a json response conatint the correlation_id and the status
-    return jsonify({"status": "XML queued successfully", "correlation_id": correlation_id}), 200
+    return rabbitmq.queue(xml_data)
 
 
 @app.route("/dequeue", methods=["GET"])
 def dequeue():
-    """
-    Dequeue XML from RabbitMQ
+    """ Dequeue XML from RabbitMQ
     ---
     responses:
       200:
