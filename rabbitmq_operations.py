@@ -11,6 +11,10 @@ from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, Earnin
 
 class RabbitMQOperations:
     def __init__(self):
+        self.connection = None
+        self.channel = None
+
+    def open_connection(self):
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
                 "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
@@ -18,7 +22,14 @@ class RabbitMQOperations:
         )
         self.channel = self.connection.channel()
 
+    def close_connection(self):
+        if self.connection:
+            self.connection.close()
+            self.connection = None
+            self.channel = None
+
     def queue(self, xml_data):
+        self.open_connection()
 
         correlation_id = secrets.token_hex(4)
 
@@ -35,11 +46,12 @@ class RabbitMQOperations:
             exchange="", routing_key="status_queue", body=json.dumps(status_message)
         )
 
-        self.connection.close()
+        self.close_connection()
         # return a json response conatint the correlation_id and the status
         return jsonify({"status": "XML queued successfully", "correlation_id": correlation_id}), 200
 
-    def dequeue(self):        
+    def dequeue(self):    
+        self.open_connection()    
         
         self.channel.queue_declare(queue="xml_queue")
         # add message to response que
@@ -157,13 +169,15 @@ class RabbitMQOperations:
                 exchange="", routing_key="status_queue", body=json.dumps(status_message)
             )
 
-            self.connection.close()
+            self.close_connection()
             return jsonify(doc_model.model_dump()), 200
         else:
-            self.connection.close()
+            self.close_connection()
             return jsonify({"status": "No more messages in the queue"}), 200
         
     def store(self, request):
+        self.open_connection()
+
         # Parse the request data into a FileModel instance
         file_model = FileModel.model_validate(request.get_json())
 
@@ -189,5 +203,33 @@ class RabbitMQOperations:
                 exchange="", routing_key="status_queue", body=json.dumps(status_message)
             )
 
-        self.connection.close()
+        self.close_connection()
         return jsonify({"status": "XML stored successfully", "uuid":file_path, "correlation_id":correlation_id}), 200
+    
+    def purge_queue(self, queue_name):
+        """
+        Purge all the messages in the given queue from RabbitMQ
+        """
+        self.open_connection()
+
+        self.channel.queue_declare(queue=queue_name)
+        # Purge the queue
+        self.channel.queue_purge(queue=queue_name)
+        self.close_connection()
+        return jsonify({"status": "No more messages in the queue"}), 204
+    
+    def status_dequeue(self):
+        """
+        Dequeue the status message from the status_queue
+        """
+        self.open_connection()
+
+        self.channel.queue_declare(queue="status_queue")
+        method_frame, header_frame, body = self.channel.basic_get("status_queue")
+        if method_frame:
+            self.channel.basic_ack(method_frame.delivery_tag)
+            self.close_connection()
+            return jsonify(json.loads(body)), 200
+        else:
+            self.close_connection()
+            return jsonify({"status": "No more messages in the queue"}), 200
