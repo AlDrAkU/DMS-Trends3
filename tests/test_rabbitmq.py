@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import pytest
 from flask import json
 from app import app as flask_app
+from rabbitmq_operations import RabbitMQOperations
 
 
 @pytest.fixture
@@ -17,6 +18,7 @@ def client():
         yield client
 
 
+
 class TestRabbitMQ(unittest.TestCase):
     def setUp(self):
         self.app = flask_app
@@ -24,28 +26,47 @@ class TestRabbitMQ(unittest.TestCase):
         self.xml_paycheck = self.load_xml("../data/test_documents/paycheck.xml")
         self.xml_invoice = self.load_xml("../data/test_documents/invoice.xml")
         self.xml_incomplete_paycheck = self.load_xml("../data/test_documents/incomplete_paycheck.xml")
+        self.rabbitmq = RabbitMQOperations()        
+        self.app_context = self.app.app_context()  # Create an application context
+        self.app_context.push()  # Push the application context
 
     def load_xml(self, xml_file):
         tree = ET.parse(xml_file)
         root = tree.getroot()
         return ET.tostring(root, encoding="utf-8").decode("utf-8")
 
-    def test1_queue_post(self):
+    def test_queue_post(self):
+        ## setup the test
         # purge the xml queue
-        self.client.delete("/purge_xml_queue")
-        response = self.client.post(
-            "/queue", data=self.xml_invoice, content_type="text/json"
-        )
-        assert response.status_code == 200
-        response_data = json.loads(response.data)
+        self.rabbitmq.purge_queue(queue_name="xml_queue")
+
+        ## Exercise the code   
+        with self.app.test_request_context():
+            response = self.rabbitmq.queue(self.xml_invoice)
+
+        ## Assertions
+        assert response[1] == 200
+        response_data = json.loads(response[0].data)
         assert response_data["status"] == f"XML queued successfully"
 
-    def test2_dequeue_get(self):
+
+    def test_dequeue_get(self):
+        ## setup the test
+        # purge the xml queue
+        self.rabbitmq.purge_queue(queue_name = "xml_queue")
+        # queue an xml
+        with self.app.test_request_context():
+            self.test_queue_post()
+
+        ## Exercise the code
         # Send a GET request to the /dequeue endpoint
-        response = self.client.get("/dequeue")
+        with self.app.test_request_context():
+            response = self.rabbitmq.dequeue()
+
+        ## Assertions
         # Check that the response status code is 200
-        assert response.status_code == 200
-        response_data = json.loads(response.data)
+        assert response[1] == 200
+        response_data = json.loads(response[0].data)
         assert response_data == {
             "address": "Alfons Gossetlaan 46 1702 Groot-Bijgaarden",
             "billToAddress": "Retail Concepts NV, Smallandlaan 9, 2660 Hoboken",
@@ -81,37 +102,57 @@ class TestRabbitMQ(unittest.TestCase):
             "website": "https://www.brico.be/nl/",
         }
 
+
     def test_dequeue_get_no_item_in_que(self):
-        # Send a GET request to the /dequeue endpoint
-        response = self.client.get("/dequeue")
+        ## setup the test
+        # purge the xml queue
+        self.rabbitmq.purge_queue(queue_name="xml_queue")
+
+        ## Exercise the code   
+        with self.app.test_request_context():
+            response = self.rabbitmq.dequeue()
+
         # Check that the response status code is 200
-        assert response.status_code == 200
-        response_data = json.loads(response.data)
+        assert response[1] == 200
+        response_data = json.loads(response[0].data)
         assert response_data == {'status': 'No more messages in the queue'}
 
     def test_dequeue_incomplete_file(self):
-        # Send a GET request to the /dequeue endpoint
-        self.client.post(
-            "/queue", data=self.xml_incomplete_paycheck, content_type="text/json"
-        )
-        response = self.client.get("/dequeue")
-        response_data = json.loads(response.data)
-        assert response.status_code == 400
+        ## setup the test
+        # purge the xml queue
+        self.rabbitmq.purge_queue(queue_name="xml_queue")
+        # queue an incomplete xml
+        with self.app.test_request_context():
+            self.rabbitmq.queue(self.xml_incomplete_paycheck)
+        
+        ## Execute the code   
+        with self.app.test_request_context():
+            response = self.rabbitmq.dequeue()
+            
+        response_data = json.loads(response[0].data)
+
+        assert response[1] == 400
         assert response_data == {'error': 'Failed to parse XML: 2 validation errors for DeductionItem\ndescription\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.7/v/missing\namount\n  Field required [type=missing, input_value={}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.7/v/missing'}
 
     def test_queue_post_status_queue(self):
-        # Clear the status_queue
-        self.client.delete("/purge_status_queue")
-
-        # Send a POST request to the /queue endpoint
-        response = self.client.post(
-            "/queue", data=self.xml_invoice, content_type="text/json"
-        )
+        ## setup the test
+        # purge the status queue
+        self.rabbitmq.purge_queue(queue_name="status_queue")
+        # queue an xml
+        with self.app.test_request_context():
+            response = self.rabbitmq.queue(self.xml_invoice)
         # Retrieve the correlation_id from the response
-        response_data = json.loads(response.data)
+        response_data = json.loads(response[0].data)
         correlation_id = response_data["correlation_id"]
-        # Check that the last message in the status_queue contains the correlation_id of the sent message
-        response = self.client.get("/status_dequeue")
-        response_data = json.loads(response.data)
+
+        ## Exercise the code
+        # Check that the last message in the status_queue contains the correlation_id of the sent message  
+        with self.app.test_request_context():
+            response = self.rabbitmq.status_dequeue()
+
+        response_data = json.loads(response[0].data)
         assert response_data["correlation_id"] == correlation_id
+    
+    def tearDown(self):
+        self.app_context.pop()  # Pop the application context when the test is done
 

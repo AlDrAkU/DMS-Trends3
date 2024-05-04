@@ -5,7 +5,7 @@ import secrets
 import json
 from datetime import datetime
 import os
-from flask import jsonify, request
+from flask import jsonify
 from utils import build_response_message, map_to_json
 from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, docTypeModel, FileModel
 
@@ -114,8 +114,6 @@ class RabbitMQOperations:
                         instruction=data.get('termsAndInstructions', {}).get('instruction'),
                         warranty=data.get('termsAndInstructions', {}).get('warranty')
                     )
-
-
 
                 elif doc_type == "Pay-01":
                     earnings_data = data.get('earnings', {})

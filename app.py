@@ -1,10 +1,5 @@
 from flask import Flask, request, jsonify
 from flasgger import Swagger
-import secrets
-from datetime import datetime
-from data_access.models import docTypeModel, InvoiceModel, PaycheckModel, EarningItem, DeductionItem, InvoiceItem, \
-    InvoiceSummary, FileModel
-import os
 from rabbitmq_operations import RabbitMQOperations
 
 app = Flask(__name__)
