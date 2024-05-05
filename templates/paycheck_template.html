@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Paycheck</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            .text-right {
+                text-align: right;
+            }
+            ul {
+                list-style-type: none;
+                padding: 0;
+            }
+        </style>
+    </head>
+    <header>
+        <h1>Paycheck</h1>
+    </header>
+    <body>
+        <h2>Title: {{ title }}</h2>
+        <p>Period Start: {{ periodStart }} - Period End: {{ periodEnd }}</p>
+        <table>
+            <tr>
+                <th>Department</th>
+                <td class="text-right">{{ department }}</td>
+            </tr>
+            <tr>
+                <th>Document Type</th>
+                <td class="text-right">{{ documentType }}</td>
+            </tr>            
+            <tr>
+                <th>Employee</th>
+                <td class="text-right">{{ name }}</td>
+            </tr>
+            <tr>
+                <th>Position</th>
+                <td class="text-right">{{ position }}</td>
+            </tr>
+            <tr>
+                <th>periodStart</th>
+                <td class="text-right">{{ periodStart }}</td>
+            </tr>
+            <tr>
+                <th>periodEnd</th>
+                <td class="text-right">{{ periodEnd }}</td>
+            </tr>
+            <tr>
+                <th>{{ earnings.description }}</th>
+                <td class="text-right">{{ earnings.amount }}</td>
+            </tr>
+            <tr>
+                <th>{{ deductions.description }}</th>
+                <td class="text-right">{{ deductions.amount }}</td>
+            </tr>
+            <tr>
+                <th>Net Pay</th>
+                <td class="text-right">{{ netPay }}</td>
+            </tr>
+            <tr>
+                <th>Processing Date</th>
+                <td class="text-right">{{ processingDate }}</td>
+            </tr>
+        </table><br>
+
+        <h3>Company Details</h3>
+        <ul>
+            <li><strong>Name:</strong> {{ companyName }}</li>
+            <li><strong>Address:</strong> {{ address }}</li>
+        </ul><br>
+    </body>
+</html>
