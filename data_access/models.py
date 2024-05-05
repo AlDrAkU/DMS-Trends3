@@ -43,6 +43,7 @@ class InvoiceSummary(BaseXmlModel, tag="InvoiceSummary"):
         }
 
 class InvoiceModel(docTypeModel, tag="Invoice"):
+    documentType: str = Field(..., min_length=1)
     companyName: str = Field(..., min_length=1)
     address: str = Field(..., min_length=1)
     website: str = Field(..., min_length=1)
@@ -63,6 +64,7 @@ class InvoiceModel(docTypeModel, tag="Invoice"):
         arbitrary_types_allowed = True
     def to_dict(self):
         return {
+            "documentType": self.documentType,
             "companyName": self.companyName,
             "address": self.address,
             "website": self.website,
@@ -101,6 +103,7 @@ class DeductionItem(BaseXmlModel, tag="DeductionItem"):
         }
 
 class PaycheckModel(docTypeModel, tag="Paycheck"):
+    documentType: str = Field(..., min_length=1)
     title: str = Field(..., min_length=1)
     periodStart: str = Field(..., min_length=1)
     periodEnd: str = Field(..., min_length=1)
@@ -120,6 +123,7 @@ class PaycheckModel(docTypeModel, tag="Paycheck"):
     def to_dict(self):
 
         return {
+            "documentType": self.documentType,
             "title": self.title,
             "periodStart": self.periodStart,
             "periodEnd": self.periodEnd,
