@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify
 from flasgger import Swagger
 from rabbitmq_operations import RabbitMQOperations
+from template_operations import TemplateOperations
 
 app = Flask(__name__)
 swagger = Swagger(app)
 rabbitmq = RabbitMQOperations()
+template = TemplateOperations()
 
 
 @app.route("/queue", methods=["POST"])
@@ -84,6 +86,17 @@ def xmlPurge():
         description: XML queue successfully purged
     """
     return rabbitmq.purge_queue("xml_queue")
+
+# Paycheck template
+@app.route("/paycheck_template", methods=["GET"])
+def paycheckTemplate():
+    """ Get the paycheck template
+    ---
+    responses:
+      200:
+        description: Paycheck template retrieved successfully
+    """
+    return template.paycheckTemplate("paycheck.json")
 
 if __name__ == "__main__":
     app.run(debug=True)
