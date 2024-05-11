@@ -16,3 +16,9 @@ services:
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'postgres'
       POSTGRES_DB: 'DMS'
+    volumes:
+      - ./scripts:/docker-entrypoint-initdb.d
+
+volumes:
+  scripts:
+    driver: local
