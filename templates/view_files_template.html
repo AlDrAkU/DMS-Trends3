@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FileStorage Records</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .text-right {
+            text-align: right;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>FileStorage Records</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>UUIDColumn</th>
+                <th>FilePath</th>
+                <th>TimeStamp</th>
+                <th>DocType</th>
+                <th>TempOrPerm</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td><a href="http://127.0.0.1:5000/fetch_one/{{ record.UUIDColumn }}">{{ record.UUIDColumn }}</a></td>
+                <td>{{ record.FilePath }}</td>
+                <td>{{ record.TimeStamp }}</td>
+                <td>{{ record.DocType }}</td>
+                <td>{{ record.TempOrPerm }}</td>
+                <td>{{ record.Status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -25,3 +25,13 @@ class FileStorageRepository(ABC):
         :return: Query
         """
         pass
+
+    # Function that fetches all rows from the FileStorage table and returns them
+    @abstractmethod
+    def fetch_all(self):
+        """
+        Fetch all rows from the FileStorage table.
+
+        :return: Query
+        """
+        pass

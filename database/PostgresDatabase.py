@@ -55,6 +55,27 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
                     return row
         except (Exception, psycopg2.Error) as error:
             print("Error while fetching from the table:", error)
+    
+    def fetch_all(self):
+        """
+        Fetch all rows from the FileStorage table.
+
+        :return: None
+        """
+        try:
+            # SQL statement for fetching all rows
+            select_query = """
+            SELECT * FROM FileStorage
+            """
+
+            # Execute the SQL statement
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(select_query)
+                    rows = cursor.fetchall()
+                    return rows
+        except (Exception, psycopg2.Error) as error:
+            print("Error while fetching from the table:", error)
 
     # Function that establishes a connection to the PostgreSQL database
     def connect(self):

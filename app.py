@@ -120,6 +120,32 @@ def cleanup():
         description: Temporary files cleaned up successfully
     """
     return utils.delete_temporary_files()
+
+@app.route("/fetch_all", methods=["GET"])
+def fetchAll():
+    """ Fetch all the rows from the database
+    ---
+    responses:
+      200:
+        description: All rows fetched successfully
+    """
+    return template.viewFilesTemplate_All()
+
+@app.route("/fetch_one/<uuid>", methods=["GET"])
+def fetchOne(uuid):
+    """ Fetch one row from the database
+    ---
+    parameters:
+      - name: uuid
+        in: path
+        required: true
+        type: string
+    responses:
+      200:
+        description: Row fetched successfully
+    """
+    return template.viewFilesTemplate_Single(uuid)
+
 if __name__ == "__main__":
     print(app.url_map)
     app.run(debug=True)
