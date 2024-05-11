@@ -7,6 +7,8 @@ class FileStorageRepository(ABC):
         Insert a new row into the FileStorage table.
 
         :param filepath: File path
+        :param TimeStamp: TimeStamp
+        :param DocType: Invoice, Paycheck or Other
         :param temp_or_perm: Temporary or Permanent status
         :param status: Status (Active or Deleted)
         :return: None

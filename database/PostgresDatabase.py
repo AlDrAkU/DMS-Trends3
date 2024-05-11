@@ -1,13 +1,16 @@
 import psycopg2
 from .IDatabase import FileStorageRepository
+from datetime import datetime
 
 class PostgreSQLFileStorageRepository(FileStorageRepository):
 
-    def insert(self,correlation_id: str, filepath: str, temp_or_perm: str, status: str) -> None:
+    def insert(self,correlation_id: str, filepath: str, timestamp: datetime, doctype: str, temp_or_perm: str, status: str) -> None:
         """
         Insert a new row into the FileStorage table in PostgreSQL.
 
         :param filepath: File path
+        :param TimeStamp: TimeStamp
+        :param DocType: Invoice, Paycheck or Other
         :param temp_or_perm: Temporary or Permanent status
         :param status: Status (Active or Deleted)
         :return: None
@@ -15,14 +18,14 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
         try:
             # SQL statement for insertion
             insert_query = """
-            INSERT INTO FileStorage (UUIDColumn, FilePath, TempOrPerm, Status)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO FileStorage (UUIDColumn, FilePath, TimeStamp, DocType, TempOrPerm, Status)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """
 
             # Execute the SQL statement
             with self.connect() as connection:
                 with connection.cursor() as cursor:
-                    cursor.execute(insert_query, (correlation_id, filepath, temp_or_perm, status))
+                    cursor.execute(insert_query, (correlation_id, filepath, timestamp, doctype, temp_or_perm, status))
             
             # Commit the transaction
             connection.commit()
