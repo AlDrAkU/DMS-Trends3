@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .text-right {
+            text-align: right;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<header>
+    <h1>Invoice</h1>
+</header>
+<body>
+<h2>Title: Invoice</h2>
+
+<table>
+    <tr>
+        <th>Document Type</th>
+        <td class="text-right">{{ documentType }}</td>
+    </tr>
+    <tr>
+        <th>Bill To</th>
+        <td class="text-right">{{ name }}</td>
+    </tr>
+    <tr>
+        <th>Company Name</th>
+        <td class="text-right">{{ companyName }}</td>
+    </tr>
+    <tr>
+        <th>Address</th>
+        <td class="text-right">{{ address }}</td>
+    </tr>
+    <tr>
+        <th>Number</th>
+        <td class="text-right">{{ number }}</td>
+    </tr>
+    <tr>
+        <th>Date</th>
+        <td class="text-right">{{ date }}</td>
+    </tr>
+    <tr>
+        <th>Due Date</th>
+        <td class="text-right">{{ dueDate }}</td>
+    </tr>
+    <tr>
+        <th>Item Description</th>
+        <th>Size</th>
+        <th>Finish</th>
+        <th>Quantity</th>
+        <th>Unit Price</th>
+        <th>Total</th>
+    </tr>
+    {% for item in items %}
+    <tr>
+        <td>{{ item.description }}</td>
+        <td>{{ item.size }}</td>
+        <td>{{ item.finish }}</td>
+        <td class="text-right">{{ item.quantity }}</td>
+        <td class="text-right">{{ item.unitPrice }}</td>
+        <td class="text-right">{{ item.total }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <th>Sub Total</th>
+        <td class="text-right">{{ summary.subTotal }}</td>
+    </tr>
+    <tr>
+        <th>Tax Rate</th>
+        <td class="text-right">{{ summary.taxRate }}</td>
+    </tr>
+    <tr>
+        <th>Total Tax</th>
+        <td class="text-right">{{ summary.totalTax }}</td>
+    </tr>
+    <tr>
+        <th>Balance Due</th>
+        <td class="text-right">{{ summary.balanceDue }}</td>
+    </tr>
+</table><br>
+
+<h3>Company Details</h3>
+<ul>
+    <li><strong>Name:</strong> {{ companyName }}</li>
+    <li><strong>Address:</strong> {{ address }}</li>
+</ul><br>
+
+<h3>Bill To</h3>
+<ul>
+    <li><strong>Name:</strong> {{ name }}</li>
+    <li><strong>Address:</strong> {{ billToAddress }}</li>
+    <li><strong>Email:</strong> {{ email }}</li>
+    <li><strong>Phone:</strong> {{ billToPhone }}</li>
+</ul><br>
+
+<h3>Invoice Info</h3>
+<ul>
+    <li><strong>Number:</strong> {{ number }}</li>
+    <li><strong>Date:</strong> {{ date }}</li>
+    <li><strong>Due Date:</strong> {{ dueDate }}</li>
+</ul><br>
+
+<h3>Items</h3>
+<table>
+    <tr>
+        <th>Description</th>
+        <th>Size</th>
+        <th>Finish</th>
+        <th>Quantity</th>
+        <th>Unit Price</th>
+        <th>Total</th>
+    </tr>
+    {% for item in items %}
+    <tr>
+        <td>{{ item.description }}</td>
+        <td>{{ item.size }}</td>
+        <td>{{ item.finish }}</td>
+        <td class="text-right">{{ item.quantity }}</td>
+        <td class="text-right">{{ item.unitPrice }}</td>
+        <td class="text-right">{{ item.total }}</td>
+    </tr>
+    {% endfor %}
+</table><br>
+
+<h3>Summary</h3>
+<ul>
+    <li><strong>Sub Total:</strong> {{ summary.subTotal }}</li>
+    <li><strong>Tax Rate:</strong> {{ summary.taxRate }}</li>
+    <li><strong>Total Tax:</strong> {{ summary.totalTax }}</li>
+    <li><strong>Balance Due:</strong> {{ summary.balanceDue }}</li>
+</ul><br>
+
+<h3>Terms And Instructions</h3>
+<ul>
+    <li><strong>Instruction:</strong> {{ instruction }}</li>
+    <li><strong>Warranty:</strong> {{ warranty }}</li>
+</ul><br>
+
+</body>
+</html>

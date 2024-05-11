@@ -74,18 +74,30 @@ class RabbitMQOperations:
                 if doc_type == "INV-01":
                     invoice_items_data = data.get("items", {})
                     invoice_summary_data = data.get("summary", {})
-
+                    invoice_items = []
                     # Parse invoice items
-                    item_data = invoice_items_data.get('item', {})
-                    invoice_item = InvoiceItem(
-                        description=item_data.get('description'),
-                        size=item_data.get('size'),
-                        finish=item_data.get('finish'),
-                        quantity=int(item_data.get('quantity')),
-                        unitPrice=float(item_data.get('unitPrice')),
-                        total=float(item_data.get('total'))
-                    )
+                    if isinstance(invoice_items_data, list):  # Multiple items
+                        for item in invoice_items_data:
+                            invoice_item = InvoiceItem(
+                                description=item.get('description'),
+                                size=item.get('size'),
+                                finish=item.get('finish'),
+                                quantity=int(item.get('quantity')),
+                                unitPrice=float(item.get('unitPrice')),
+                                total=float(item.get('total'))
+                            )
+                            invoice_items.append(invoice_item)
 
+                    else:  # Single item
+                        invoice_item = InvoiceItem(
+                            description=invoice_items_data.get('description'),
+                            size=invoice_items_data.get('size'),
+                            finish=invoice_items_data.get('finish'),
+                            quantity=int(invoice_items_data.get('quantity')),
+                            unitPrice=float(invoice_items_data.get('unitPrice')),
+                            total=float(invoice_items_data.get('total'))
+                        )
+                        invoice_items.append(invoice_item)
                     # Parse invoice summary
                     invoice_summary = InvoiceSummary(
                         subTotal=float(invoice_summary_data.get('subTotal')),
@@ -109,7 +121,7 @@ class RabbitMQOperations:
                         number=int(data.get('invoiceInfo', {}).get('number')),
                         date=data.get('invoiceInfo', {}).get('date'),
                         dueDate=data.get('invoiceInfo', {}).get('dueDate'),
-                        items=[invoice_item],
+                        items=invoice_items,
                         summary=invoice_summary,
                         instruction=data.get('termsAndInstructions', {}).get('instruction'),
                         warranty=data.get('termsAndInstructions', {}).get('warranty')

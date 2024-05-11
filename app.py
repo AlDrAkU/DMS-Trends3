@@ -1,5 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect, url_for
 from flasgger import Swagger
+
+import utils
 from rabbitmq_operations import RabbitMQOperations
 from template_operations import TemplateOperations
 
@@ -98,5 +100,26 @@ def paycheckTemplate():
     """
     return template.paycheckTemplate("paycheck.json")
 
+# Invoice template
+@app.route("/invoice_template", methods=["GET"])
+def invoiceTemplate():
+    """ Get the invoice template
+    ---
+    responses:
+      200:
+        description: Invoice template retrieved successfully
+    """
+    return template.invoiceTemplate("invoice.json")
+
+@app.route("/temporary_file_cleanup", methods=["DELETE"])
+def cleanup():
+    """ Cleanup temporary files
+    ---
+    responses:
+      204:
+        description: Temporary files cleaned up successfully
+    """
+    return utils.delete_temporary_files()
 if __name__ == "__main__":
+    print(app.url_map)
     app.run(debug=True)

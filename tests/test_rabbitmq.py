@@ -78,6 +78,14 @@ class TestRabbitMQ(unittest.TestCase):
             "email": "team@asadventure.com",
             "instruction": "Payment Instructions",
             "items": [
+                 {
+                 'description': 'Ceramic Floor Tile',
+                 'finish': 'Glossy',
+                 'quantity': 100,
+                 'size': '12x12 inches',
+                 'total': 150.0,
+                 'unitPrice': 1.5,
+                },
                 {
                     "description": "Porcelain Floor Tile",
                     "finish": "Matte",
