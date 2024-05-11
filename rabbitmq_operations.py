@@ -6,6 +6,7 @@ import json
 from datetime import datetime
 import os
 from flask import jsonify
+from database.PostgresDatabase import PostgreSQLFileStorageRepository
 from utils import build_response_message, map_to_json
 from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, docTypeModel, FileModel
 
@@ -202,9 +203,17 @@ class RabbitMQOperations:
         with open(file_path, 'w') as f:
             if type(xml_data) == InvoiceModel:
                 json.dump(xml_data.to_dict(), f)
+                doctype = "Invoice"
             elif type(xml_data) == PaycheckModel:
                 json.dump(xml_data.to_dict(), f)
-        # TODO: saving document uuid, name and timestamp and status to db
+                doctype = "Paycheck"
+        # saving document uuid, name and timestamp and status to db
+        timestamp = datetime.now()
+        if storage_type == "temp":
+            temporperm = "Temporary"
+        elif storage_type == "perm":
+            temporperm = "Permanent"
+        PostgreSQLFileStorageRepository().insert(correlation_id, dir_path,timestamp, doctype, temporperm, "Active")
 
         self.channel.queue_declare(queue="status_queue")
         status_message = build_response_message(
