@@ -1,9 +1,13 @@
+from datetime import datetime
+import shutil
 import sys
 import os
 import unittest
 import xml.etree.ElementTree as ET
 
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from data_access.models import FileModel
 
 import pytest
 from flask import json
@@ -26,6 +30,9 @@ class TestRabbitMQ(unittest.TestCase):
         self.xml_paycheck = self.load_xml("../data/test_documents/paycheck.xml")
         self.xml_invoice = self.load_xml("../data/test_documents/invoice.xml")
         self.xml_incomplete_paycheck = self.load_xml("../data/test_documents/incomplete_paycheck.xml")
+        # load thetest_store_document.json file from the /data/test_documents directory
+        f = open("../data/test_documents/test_store_document.json", "r")
+        self.json_test_store_document = json.load(f)
         self.rabbitmq = RabbitMQOperations()        
         self.app_context = self.app.app_context()  # Create an application context
         self.app_context.push()  # Push the application context
@@ -160,6 +167,39 @@ class TestRabbitMQ(unittest.TestCase):
 
         response_data = json.loads(response[0].data)
         assert response_data["correlation_id"] == correlation_id
+    
+    def test_store_post(self):
+        ## setup the test
+        #clear the directory where the temporary iles are stored
+        self.clear_storage("temp")
+        # Check that the directory doesn't exist
+        assert not os.path.exists(f'./data/storage/temp/{datetime.today().date()}')
+
+        ## Exercise the code
+        file_model = FileModel.model_validate(self.json_test_store_document)
+        xml_data = file_model.data
+        storage_type = file_model.storage_type
+        response = self.rabbitmq.store(xml_data, storage_type)
+        
+        ## Assertions
+        # Check that the response status code is 200
+        assert response[1] == 200
+        response_data = json.loads(response[0].data)
+        assert response_data["status"] == f"XML stored successfully"
+        
+        # Check that the directory is not empty and it contains the stored file with the name secrets.token_hex(4) + ".json"
+        assert os.listdir(f'./data/storage/temp/{datetime.today().date()}')
+        assert os.listdir(f'./data/storage/temp/{datetime.today().date()}')[0] == f"{response_data['correlation_id']}.json"
+
+    
+    def clear_storage(self, storage_type="temp"):
+        dir_path = f'./data/storage/{storage_type}/{datetime.today().date()}'
+        # Check if the directory exists, then delete the directory and its contents
+        if os.path.exists(dir_path):
+            shutil.rmtree(dir_path)
+
+
+
     
     def tearDown(self):
         self.app_context.pop()  # Pop the application context when the test is done

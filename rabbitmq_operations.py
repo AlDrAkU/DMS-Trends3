@@ -186,15 +186,10 @@ class RabbitMQOperations:
             self.close_connection()
             return jsonify({"status": "No more messages in the queue"}), 200
         
-    def store(self, request):
+    def store(self, xml_data, storage_type):
         self.open_connection()
 
-        # Parse the request data into a FileModel instance
-        file_model = FileModel.model_validate(request.get_json())
-
         # Now you can access the data and storage_type fields
-        xml_data = file_model.data
-        storage_type = file_model.storage_type
         correlation_id = secrets.token_hex(4)
         dir_path = f'./data/storage/{storage_type}/{datetime.today().date()}'
         if not os.path.exists(dir_path):

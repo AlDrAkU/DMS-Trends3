@@ -4,6 +4,7 @@ from flasgger import Swagger
 import utils
 from rabbitmq_operations import RabbitMQOperations
 from template_operations import TemplateOperations
+from data_access.models import FileModel
 
 app = Flask(__name__)
 swagger = Swagger(app)
@@ -56,8 +57,13 @@ def store():
     responses:
       200:
         description: XML stored successfully
-    """
-    return rabbitmq.store(request)
+    """    
+    # Parse the request data into a FileModel instance
+    file_model = FileModel.model_validate(request.get_json())
+    xml_data = file_model.data
+    storage_type = file_model.storage_type
+
+    return rabbitmq.store(xml_data, storage_type)
     
 @app.route("/status_dequeue", methods=["GET"])
 def statusDequeue():
