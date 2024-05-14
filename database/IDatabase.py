@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List
 
 class FileStorageRepository(ABC):
     @abstractmethod
@@ -33,5 +34,17 @@ class FileStorageRepository(ABC):
         Fetch all rows from the FileStorage table.
 
         :return: Query
+        """
+        pass
+
+    #Function that updates the status of selected rows in the FileStorage table
+    @abstractmethod
+    def update_status_of_list(self, uuids: List[str], status: str):
+        """
+        Update the status of all rows in the FileStorage table with UUIDs in the given list.
+
+        :param uuids: List of UUIDs
+        :param status: Status (Active or Deleted)
+        :return: None
         """
         pass

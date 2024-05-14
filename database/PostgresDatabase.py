@@ -1,6 +1,7 @@
 import psycopg2
 from .IDatabase import FileStorageRepository
 from datetime import datetime
+from typing import List
 
 class PostgreSQLFileStorageRepository(FileStorageRepository):
 
@@ -91,3 +92,29 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             return connection
         except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
+
+    def update_status_of_list(self, uuids: List[str], status: str):
+        """
+        Update the status of all rows in the FileStorage table with UUIDs in the given list.
+
+        :param uuids: List of UUIDs
+        :param status: Status (Active or Deleted)
+        :return: None
+        """
+        try:
+            # SQL statement for updating the status of selected rows
+            update_query = """
+            UPDATE FileStorage SET Status = %s WHERE UUIDColumn = %s
+            """
+
+            # Execute the SQL statement
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    for uuid in uuids:
+                        cursor.execute(update_query, (status, uuid))
+            
+            # Commit the transaction
+            connection.commit()
+            print("Status updated successfully!")
+        except (Exception, psycopg2.Error) as error:
+            print("Error while updating the status of the rows:", error)
