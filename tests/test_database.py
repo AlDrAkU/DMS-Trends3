@@ -9,7 +9,6 @@ sys.path.append(parent_dir)
 import secrets
 import unittest
 from database.PostgresDatabase import PostgreSQLFileStorageRepository
-from database.IDatabase import FileStorageRepository
 
 class TestPostgresDatabase(unittest.TestCase):
     def setUp(self):

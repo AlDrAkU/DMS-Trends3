@@ -8,7 +8,7 @@ import os
 from flask import jsonify
 from database.PostgresDatabase import PostgreSQLFileStorageRepository
 from utils import build_response_message, map_to_json
-from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, docTypeModel, FileModel
+from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, docTypeModel
 
 class RabbitMQOperations:
     def __init__(self):

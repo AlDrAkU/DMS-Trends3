@@ -1,7 +1,4 @@
 import unittest
-from copy import deepcopy
-
-from flask import json
 from app import app as flask_app
 
 class TestTemplates(unittest.TestCase):

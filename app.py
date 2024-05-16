@@ -1,6 +1,5 @@
-from flask import Flask, request, jsonify, redirect, url_for
+from flask import Flask, request, jsonify, redirect, url_for,abort
 from flasgger import Swagger
-
 import utils
 from rabbitmq_operations import RabbitMQOperations
 from template_operations import TemplateOperations
@@ -104,8 +103,22 @@ def paycheckTemplate():
       200:
         description: Paycheck template retrieved successfully
     """
-    return template.paycheckTemplate("paycheck.json")
-
+    return template.paycheckTemplate("2024-05-05/paycheck.json")
+@app.route("/paycheck_template/<uuid>", methods=["GET"])
+def paycheckTemplateUuid(uuid):
+    """ Get the paycheck template
+    ---
+    parameters:
+      - name: uuid
+        in: path
+        required: true
+        type: string
+        description: The UUID of the file
+    responses:
+      200:
+        description: Paycheck template retrieved successfully
+    """
+    return template.paycheckTemplate("2024-05-05/paycheck.json",uuid)
 # Invoice template
 @app.route("/invoice_template", methods=["GET"])
 def invoiceTemplate():
@@ -115,7 +128,23 @@ def invoiceTemplate():
       200:
         description: Invoice template retrieved successfully
     """
-    return template.invoiceTemplate("invoice.json")
+    return template.invoiceTemplate("2024-05-11/invoice.json")
+
+@app.route("/invoice_template/<uuid>", methods=["GET"])
+def invoiceTemplateUuid(uuid):
+    """ Get the invoice template filled in with the requested uuid data
+    ---
+    parameters:
+      - name: uuid
+        in: path
+        required: true
+        type: string
+        description: The UUID of the file
+    responses:
+      200:
+        description: Invoice template retrieved successfully
+    """
+    return template.invoiceTemplate("2024-05-11/invoice.json",uuid)
 
 @app.route("/temporary_file_cleanup", methods=["DELETE"])
 def cleanup():
@@ -151,7 +180,35 @@ def fetchOne(uuid):
         description: Row fetched successfully
     """
     return template.viewFilesTemplate_Single(uuid)
+@app.route("/fetch_file_view/<uuid>/<docType>", methods=["GET"])
+def fetchFileView(uuid, docType):
+    """ Fetch the file view template and redirect based on DocType
+    ---
+    parameters:
+      - name: uuid
+        in: path
+        required: true
+        type: string
+        description: The UUID of the file
+      - name: docType
+        in: path
+        required: true
+        type: string
+        description: The type of document (invoice or paycheck)
+    responses:
+      302:
+        description: Redirects to the appropriate template
+      404:
+        description: DocType not found or invalid
+    """
+    if docType.lower() == 'invoice':
+        return redirect(url_for('invoiceTemplateUuid', uuid=uuid))
+    elif docType.lower() == 'paycheck':
+        return redirect(url_for('paycheckTemplateUuid', uuid=uuid))
+    else:
+        abort(404)
+
+
 
 if __name__ == "__main__":
-    print(app.url_map)
     app.run(debug=True)

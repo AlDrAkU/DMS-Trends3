@@ -45,7 +45,6 @@ def delete_temporary_files():
         if not os.listdir(root):
             os.rmdir(root)  # Remove the directory
 
-    #TODO update status of deleted files to DELETED
     PostgreSQLFileStorageRepository().update_status_of_list(files_deleted, "DELETED")
     
     return build_response_message((" ").join(files_deleted), "Temporary files deleted successfully", "Temporary files deleted successfully")

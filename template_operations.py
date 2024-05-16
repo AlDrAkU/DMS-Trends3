@@ -6,12 +6,25 @@ import os
 from database.PostgresDatabase import PostgreSQLFileStorageRepository
 
 class TemplateOperations:
-    def paycheckTemplate(self, fileName):    
+    def paycheckTemplate(self, fileName,uuid:str = None):
         # Get the absolute path to the project directory
         project_dir = os.path.dirname(os.path.abspath(__file__))
-
+        if uuid:
+            # Fetch the data from the database
+            record = PostgreSQLFileStorageRepository().fetch_one(uuid)
+            mapped_record = {
+                "UUIDColumn": record[0],
+                "FilePath": record[1],
+                "TimeStamp": record[2],
+                "DocType": record[3],
+                "TempOrPerm": record[4],
+                "Status": record[5]
+            }
+            json_file_path = os.path.join(project_dir, 'data', 'storage', 'temp', mapped_record.get("FilePath").split("/")[-1],mapped_record.get("UUIDColumn")+".json")
+            print('used uuid:',json_file_path)
         # Define path to the JSON file
-        json_file_path = os.path.join(project_dir, 'data', 'storage', 'temp', '2024-05-05', fileName)
+        else:
+            json_file_path = os.path.join(project_dir, 'data', 'storage', 'temp', fileName)
 
         # Load JSON data from file
         with open(json_file_path) as json_file:
@@ -28,12 +41,25 @@ class TemplateOperations:
         # Render template with JSON data
         return render_template(template, **user_data)
 
-    def invoiceTemplate(self,fileName):
+    def invoiceTemplate(self,fileName,uuid: str = None):
         # Get the absolute path to the project directory
         project_dir = os.path.dirname(os.path.abspath(__file__))
-
+        if uuid:
+            # Fetch the data from the database
+            record = PostgreSQLFileStorageRepository().fetch_one(uuid)
+            mapped_record = {
+                "UUIDColumn": record[0],
+                "FilePath": record[1],
+                "TimeStamp": record[2],
+                "DocType": record[3],
+                "TempOrPerm": record[4],
+                "Status": record[5]
+            }
+            json_file_path = os.path.join(project_dir, 'data', 'storage', 'temp', mapped_record.get("FilePath").split("/")[-1],mapped_record.get("UUIDColumn")+".json")
+            print('used uuid:',json_file_path)
         # Define path to the JSON file
-        json_file_path = os.path.join(project_dir, 'data', 'storage', 'temp', '2024-05-11', fileName)
+        else:
+            json_file_path = os.path.join(project_dir, 'data', 'storage', 'temp', fileName)
 
         # Load JSON data from file
         with open(json_file_path) as json_file:
