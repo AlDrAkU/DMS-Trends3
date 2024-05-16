@@ -2,7 +2,9 @@ import datetime
 import os
 import xml.etree.ElementTree as ET
 
-from database.PostgresDatabase import PostgreSQLFileStorageRepository
+from utils.database.PostgresDatabase import PostgreSQLFileStorageRepository
+
+
 def build_response_message(correlation_id, status, message):
     response_message = {
         "correlation_id": correlation_id,

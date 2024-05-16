@@ -7,12 +7,12 @@ import xml.etree.ElementTree as ET
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from data_access.models import FileModel
+from utils.data_access.models import FileModel
 
 import pytest
 from flask import json
 from app import app as flask_app
-from rabbitmq_operations import RabbitMQOperations
+from utils.rabbitmq_operations import RabbitMQOperations
 
 
 @pytest.fixture

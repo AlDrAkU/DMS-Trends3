@@ -1,4 +1,5 @@
-version: '3'
+version: '3.8'
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -8,6 +9,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: "admin"
       RABBITMQ_DEFAULT_PASS: "admin"
+
   postgres:
     image: postgres:16.2
     ports:
@@ -18,6 +20,33 @@ services:
       POSTGRES_DB: 'DMS'
     volumes:
       - ./scripts:/docker-entrypoint-initdb.d
+
+  viewer-service:
+    build:
+      context: ./viewer_service
+    ports:
+      - "5005:5001"  # Change the host port to 5002
+    volumes:
+      - ./viewer_service:/app
+      - ./utils:/app/utils
+      - ./utils/database:/app/utils/database
+      - ./utils/data_access:/app/utils/data_access
+      - ./utils/templates:/app/utils/templates
+    restart: always
+
+
+  repository-service:
+    build:
+      context: ./repository_service
+    ports:
+      - "5006:5000"
+    volumes:
+      - ./repository_service:/app
+      - ./utils:/app/utils
+      - ./utils/database:/app/utils/database
+      - ./utils/data_access:/app/utils/data_access
+      - ./utils/templates:/app/utils/templates
+    restart: always
 
 volumes:
   scripts:

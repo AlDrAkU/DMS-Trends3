@@ -1,9 +1,11 @@
-from flask import render_template
-from jinja2 import Environment, FileSystemLoader
 import json
 import os
 
-from database.PostgresDatabase import PostgreSQLFileStorageRepository
+from flask import render_template
+from jinja2 import Environment, FileSystemLoader
+
+from utils.database.PostgresDatabase import PostgreSQLFileStorageRepository
+
 
 class TemplateOperations:
     def paycheckTemplate(self, fileName,uuid:str = None):

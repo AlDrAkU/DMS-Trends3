@@ -1,14 +1,18 @@
 # Class that contains all the operations that can be performed on RabbitMQ
 #
-import pika
-import secrets
 import json
-from datetime import datetime
 import os
+import secrets
+from datetime import datetime
+
+import pika
 from flask import jsonify
-from database.PostgresDatabase import PostgreSQLFileStorageRepository
-from utils import build_response_message, map_to_json
-from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, docTypeModel
+
+from utils.data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, \
+    docTypeModel
+from utils.database.PostgresDatabase import PostgreSQLFileStorageRepository
+from utils.utils import build_response_message, map_to_json
+
 
 class RabbitMQOperations:
     def __init__(self):
@@ -18,7 +22,7 @@ class RabbitMQOperations:
     def open_connection(self):
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
-                "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
+                "rabbitmq", 5672, "/", pika.PlainCredentials("admin", "admin")
             )
         )
         self.channel = self.connection.channel()
@@ -66,12 +70,14 @@ class RabbitMQOperations:
             self.channel.queue_declare(queue="status_queue")
 
             data = map_to_json(body)
-
+            print(data)
             correlation_id = secrets.token_hex(4)
 
             # Load the dictionary into the Pydantic model
             try:
                 doc_type = data.get("documentType")
+                print(doc_type)
+                print(type(data))
                 if doc_type == "INV-01":
                     invoice_items_data = data.get("items", {})
                     invoice_summary_data = data.get("summary", {})
@@ -170,7 +176,8 @@ class RabbitMQOperations:
                 self.connection.close()
                 return jsonify({"error": "Failed to parse XML: {}".format(str(e))}), 400
 
-
+            print(doc_model)
+            print(type(doc_model))
             # Publish the status message to the status_queue
             self.channel.queue_declare(queue="status_queue")
             status_message = build_response_message(

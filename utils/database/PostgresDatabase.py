@@ -1,7 +1,10 @@
-import psycopg2
-from .IDatabase import FileStorageRepository
 from datetime import datetime
 from typing import List
+
+import psycopg2
+
+from .IDatabase import FileStorageRepository
+
 
 class PostgreSQLFileStorageRepository(FileStorageRepository):
 
@@ -85,7 +88,7 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             connection = psycopg2.connect(
                 user="postgres",
                 password="postgres", #TODO secrets.PASSWORD,
-                host="localhost",
+                host="postgres",
                 port="5432",
                 database="DMS",
             )
