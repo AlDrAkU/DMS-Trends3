@@ -10,7 +10,7 @@ from utils.database.PostgresDatabase import PostgreSQLFileStorageRepository
 class TemplateOperations:
     def paycheckTemplate(self, fileName,uuid:str = None):
         # Get the absolute path to the project directory
-        project_dir = os.path.dirname(os.path.abspath(__file__))
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         if uuid:
             # Fetch the data from the database
             record = PostgreSQLFileStorageRepository().fetch_one(uuid)
@@ -33,7 +33,7 @@ class TemplateOperations:
             user_data = json.load(json_file)
 
         # Construct the absolute path to the templates directory
-        templates_dir = os.path.join(project_dir, 'templates')
+        templates_dir = os.path.join(project_dir, 'utils','templates')
 
         env = Environment(loader=FileSystemLoader(templates_dir))
         try:
@@ -45,7 +45,7 @@ class TemplateOperations:
 
     def invoiceTemplate(self,fileName,uuid: str = None):
         # Get the absolute path to the project directory
-        project_dir = os.path.dirname(os.path.abspath(__file__))
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         if uuid:
             # Fetch the data from the database
             record = PostgreSQLFileStorageRepository().fetch_one(uuid)
@@ -68,7 +68,7 @@ class TemplateOperations:
             user_data = json.load(json_file)
 
         # Construct the absolute path to the templates directory
-        templates_dir = os.path.join(project_dir, 'templates')
+        templates_dir = os.path.join(project_dir, 'utils','templates')
 
         env = Environment(loader=FileSystemLoader(templates_dir))
         try:

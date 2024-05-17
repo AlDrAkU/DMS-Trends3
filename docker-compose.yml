@@ -32,6 +32,7 @@ services:
       - ./utils/database:/app/utils/database
       - ./utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
+      - ../data:/app/data
     restart: always
 
 
@@ -46,6 +47,7 @@ services:
       - ./utils/database:/app/utils/database
       - ./utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
+      - ../data:/app/data
     restart: always
 
 volumes:

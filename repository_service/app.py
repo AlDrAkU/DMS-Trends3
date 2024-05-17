@@ -1,10 +1,13 @@
 from flask import Flask, request
 from flasgger import Swagger
+from flask_cors import CORS
+from utils import utils
 from utils.rabbitmq_operations import RabbitMQOperations
 from utils.data_access.models import FileModel
 from utils.template_operations import TemplateOperations
 
 app = Flask(__name__)
+CORS(app)
 swagger = Swagger(app, template={
     "swagger": "2.0",
     "info": {

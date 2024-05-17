@@ -1,9 +1,10 @@
 from flask import Flask, redirect, url_for, abort
 from flasgger import Swagger
-
+from flask_cors import CORS
 from utils.template_operations import TemplateOperations
 
 app = Flask(__name__)
+CORS(app)
 swagger = Swagger(app, template={
     "swagger": "2.0",
     "info": {
