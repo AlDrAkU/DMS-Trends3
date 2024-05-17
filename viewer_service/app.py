@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, abort
+from flask import Flask, redirect, url_for, abort, render_template
 from flasgger import Swagger
 from flask_cors import CORS
 from utils.template_operations import TemplateOperations
@@ -74,5 +74,8 @@ def fetchFileView(uuid, docType):
     else:
         abort(404)
 
+@app.route('/')
+def home():
+    return render_template('home.html')
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5001)
