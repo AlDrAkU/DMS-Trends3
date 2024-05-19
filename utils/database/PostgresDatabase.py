@@ -8,7 +8,7 @@ from .IDatabase import FileStorageRepository
 
 
 class PostgreSQLFileStorageRepository(FileStorageRepository):
-    def __init__(self, postgres_user: str ="admin", postgres_password: str = "admin", postgres_host: str = "postgres",
+    def __init__(self, postgres_user: str ="postgres", postgres_password: str = "postgres", postgres_host: str = "postgres",
                  postgres_port: str = "5432", postgres_database: str = "DMS"):
         self.postgres_user = postgres_user
         self.postgres_password = postgres_password
