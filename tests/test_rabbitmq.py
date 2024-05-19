@@ -2,6 +2,7 @@ from datetime import datetime
 import shutil
 import sys
 import os
+from time import sleep
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -14,6 +15,47 @@ from flask import json
 from app import app as flask_app
 from rabbitmq_operations import RabbitMQOperations
 
+def get_config_directory():
+        # Get the directory of the app.py script
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
+    # Get the parent directory
+    parent_dir = os.path.dirname(script_dir)
+
+    # Construct the path to the config.json file
+    config_path = os.path.join(parent_dir, 'config.json')
+
+    return config_path
+
+def disable_consumer():
+    config_path = get_config_directory()
+
+    # Load the configuration
+    with open(config_path, 'r') as config_file:
+        config = json.load(config_file)
+
+    # Set consumer_enabled to false
+        config['rabbitmq']['consumer_enabled'] = False
+
+    # Save the configuration
+    with open(config_path, 'w') as config_file:
+        json.dump(config, config_file, indent=4)
+
+def enable_consumer():
+    config_path = get_config_directory()
+
+    # Load the configuration
+    with open(config_path, 'r') as config_file:
+        config = json.load(config_file)
+
+    # Set consumer_enabled to true
+    config['rabbitmq']['consumer_enabled'] = True
+
+    # Save the configuration
+    with open(config_path, 'w') as config_file:
+        json.dump(config, config_file, indent=4)
+
+
 
 @pytest.fixture
 def client():
@@ -25,6 +67,7 @@ def client():
 
 class TestRabbitMQ(unittest.TestCase):
     def setUp(self):
+        disable_consumer()
         self.app = flask_app
         self.client = self.app.test_client()
         self.xml_paycheck = self.load_xml("../data/test_documents/paycheck.xml")

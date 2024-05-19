@@ -5,10 +5,35 @@ import secrets
 import json
 from datetime import datetime
 import os
-from flask import jsonify
+from flask import Flask, jsonify
 from database.PostgresDatabase import PostgreSQLFileStorageRepository
 from utils import build_response_message, map_to_json
-from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, docTypeModel
+from data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, docTypeModel,FileModel
+
+app = Flask(__name__)
+
+#region RabbitMQ Connection Configuration
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Construct the path to the config.json file
+config_path = os.path.join(script_dir, 'config.json')
+
+# Load the configuration
+with open(config_path) as config_file:
+    config = json.load(config_file)
+
+# Get the RabbitMQ settings
+rabbitmq_config = config['rabbitmq']
+
+# Get the RabbitMQ credentials and parameters
+credentials = pika.PlainCredentials(rabbitmq_config['username'], rabbitmq_config['password'])
+parameters = pika.ConnectionParameters(rabbitmq_config['host'], rabbitmq_config['port'], rabbitmq_config['vhost'], credentials)
+
+# Get the consumer settings
+consumer_enabled = config['rabbitmq']['consumer_enabled']
+
+#endregion
 
 class RabbitMQOperations:
     def __init__(self):
@@ -16,11 +41,7 @@ class RabbitMQOperations:
         self.channel = None
 
     def open_connection(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                "localhost", 5672, "/", pika.PlainCredentials("admin", "admin")
-            )
-        )
+        self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
 
     def close_connection(self):
@@ -60,10 +81,87 @@ class RabbitMQOperations:
         method_frame, header_frame, body = self.channel.basic_get("xml_queue")
 
         if method_frame:
-            # Acknowledge the message
+            model_dump = RabbitMQOperations.consume_dequeue(method_frame, body, self.channel)
+            # Acknowledge the message                
             self.channel.basic_ack(method_frame.delivery_tag)
+        else:
+            model_dump = jsonify({"status": "No more messages in the queue"}), 200
+        self.close_connection()
 
-            self.channel.queue_declare(queue="status_queue")
+        return model_dump
+
+        
+    def store(self, xml_data, storage_type):
+        self.open_connection()
+
+        response = RabbitMQOperations.consume_store(xml_data, storage_type, self.channel)
+
+        self.close_connection()
+
+        return response
+
+        # # Now you can access the data and storage_type fields
+        # correlation_id = secrets.token_hex(4)
+        # dir_path = f'./data/storage/{storage_type}/{datetime.today().date()}'
+        # if not os.path.exists(dir_path):
+        #     os.makedirs(dir_path)
+        # file_path = f'{dir_path}/{correlation_id}.json'
+        # with open(file_path, 'w') as f:
+        #     if type(xml_data) == InvoiceModel:
+        #         json.dump(xml_data.to_dict(), f)
+        #         doctype = "Invoice"
+        #     elif type(xml_data) == PaycheckModel:
+        #         json.dump(xml_data.to_dict(), f)
+        #         doctype = "Paycheck"
+        # # saving document uuid, name and timestamp and status to db
+        # timestamp = datetime.now()
+        # if storage_type == "temp":
+        #     temporperm = "Temporary"
+        # elif storage_type == "perm":
+        #     temporperm = "Permanent"
+        # PostgreSQLFileStorageRepository().insert(correlation_id, dir_path,timestamp, doctype, temporperm, "Active")
+
+        # self.channel.queue_declare(queue="status_queue")
+        # status_message = build_response_message(
+        #         correlation_id, f"XML {correlation_id} stored successfully", "no error message")
+        # self.channel.basic_publish(
+        #         exchange="", routing_key="status_queue", body=json.dumps(status_message)
+        #     )
+
+        # self.close_connection()
+        # return jsonify({"status": "XML stored successfully", "uuid":file_path, "correlation_id":correlation_id}), 200
+    
+    def purge_queue(self, queue_name):
+        """
+        Purge all the messages in the given queue from RabbitMQ
+        """
+        self.open_connection()
+
+        self.channel.queue_declare(queue=queue_name)
+        # Purge the queue
+        self.channel.queue_purge(queue=queue_name)
+        self.close_connection()
+        return jsonify({"status": "No more messages in the queue"}), 204
+    
+    def status_dequeue(self):
+        """
+        Dequeue the status message from the status_queue
+        """
+        self.open_connection()
+
+        self.channel.queue_declare(queue="status_queue")
+        method_frame, header_frame, body = self.channel.basic_get("status_queue")
+        if method_frame:
+            self.channel.basic_ack(method_frame.delivery_tag)
+            self.close_connection()
+            return jsonify(json.loads(body)), 200
+        else:
+            self.close_connection()
+            return jsonify({"status": "No more messages in the queue"}), 200
+        
+    def consume_dequeue(method_frame, body, channel):    
+
+            channel.queue_declare(queue="status_queue")
 
             data = map_to_json(body)
 
@@ -160,35 +258,30 @@ class RabbitMQOperations:
                 
             except Exception as e:
                 # Publish the status message to the status_queue
-                self.channel.queue_declare(queue="status_queue")
+                channel.queue_declare(queue="status_queue")
                 status_message = build_response_message(
                     correlation_id, {"error": "Failed to parse XML: {}".format(str(e))},body.decode()
                 )
-                self.channel.basic_publish(
+                channel.basic_publish(
                     exchange="", routing_key="status_queue", body=json.dumps(status_message)
                 )
-                self.connection.close()
-                return jsonify({"error": "Failed to parse XML: {}".format(str(e))}), 400
+                with app.app_context():
+                    return jsonify({"error": "Failed to parse XML: {}".format(str(e))}), 400
 
 
             # Publish the status message to the status_queue
-            self.channel.queue_declare(queue="status_queue")
+            channel.queue_declare(queue="status_queue")
             status_message = build_response_message(
                 correlation_id, "XML dequeued successfully", doc_model.model_dump()
             )
-            self.channel.basic_publish(
+            channel.basic_publish(
                 exchange="", routing_key="status_queue", body=json.dumps(status_message)
             )
 
-            self.close_connection()
-            return jsonify(doc_model.model_dump()), 200
-        else:
-            self.close_connection()
-            return jsonify({"status": "No more messages in the queue"}), 200
-        
-    def store(self, xml_data, storage_type):
-        self.open_connection()
-
+            with app.app_context():
+                return jsonify(doc_model.model_dump()), 200
+    
+    def consume_store( xml_data, storage_type, channel):
         # Now you can access the data and storage_type fields
         correlation_id = secrets.token_hex(4)
         dir_path = f'./data/storage/{storage_type}/{datetime.today().date()}'
@@ -210,40 +303,53 @@ class RabbitMQOperations:
             temporperm = "Permanent"
         PostgreSQLFileStorageRepository().insert(correlation_id, dir_path,timestamp, doctype, temporperm, "Active")
 
-        self.channel.queue_declare(queue="status_queue")
+        channel.queue_declare(queue="status_queue")
         status_message = build_response_message(
                 correlation_id, f"XML {correlation_id} stored successfully", "no error message")
-        self.channel.basic_publish(
+        channel.basic_publish(
                 exchange="", routing_key="status_queue", body=json.dumps(status_message)
             )
-
-        self.close_connection()
-        return jsonify({"status": "XML stored successfully", "uuid":file_path, "correlation_id":correlation_id}), 200
+        with app.app_context():
+            return jsonify({"status": "XML stored successfully", "uuid":file_path, "correlation_id":correlation_id}), 200
+        
     
-    def purge_queue(self, queue_name):
-        """
-        Purge all the messages in the given queue from RabbitMQ
-        """
-        self.open_connection()
+    def start_consumer():
+        def callback(ch, method_frame, properties, body):
+            # dequeues the message and stores it in the database
+            model_dump = RabbitMQOperations.consume_dequeue(method_frame, body, ch)
 
-        self.channel.queue_declare(queue=queue_name)
-        # Purge the queue
-        self.channel.queue_purge(queue=queue_name)
-        self.close_connection()
-        return jsonify({"status": "No more messages in the queue"}), 204
+            if model_dump[1] == 200:
+                # alterations to fit the file model
+                model_data = model_dump[0].get_data()
+                model_data_json = {"data" : json.loads(model_data.decode("utf-8"))}
+                file_model = FileModel.model_validate(model_data_json)
     
-    def status_dequeue(self):
-        """
-        Dequeue the status message from the status_queue
-        """
-        self.open_connection()
+                xml_data = file_model.data
+                storage_type = file_model.storage_type
+                
+                # if the data is not a PaycheckModel or InvoiceModel, then do not store it
+                if type(xml_data) == InvoiceModel or type(xml_data) == PaycheckModel:
+                    # Store the data
+                    RabbitMQOperations.consume_store(xml_data, storage_type, ch)
 
-        self.channel.queue_declare(queue="status_queue")
-        method_frame, header_frame, body = self.channel.basic_get("status_queue")
-        if method_frame:
-            self.channel.basic_ack(method_frame.delivery_tag)
-            self.close_connection()
-            return jsonify(json.loads(body)), 200
-        else:
-            self.close_connection()
-            return jsonify({"status": "No more messages in the queue"}), 200
+            # Send a delivery acknowledgement
+            ch.basic_ack(delivery_tag=method_frame.delivery_tag)
+
+        
+        # Connect to the RabbitMQ server
+        connection = pika.BlockingConnection(parameters)
+
+        # Create a channel
+        channel = connection.channel()
+
+        # Declare the queue
+        channel.queue_declare(queue='xml_queue')
+
+        # Set the prefetch count to 1
+        channel.basic_qos(prefetch_count=1)
+
+        # Start consuming messages
+        channel.basic_consume(queue='xml_queue', on_message_callback=callback)
+
+        # Start consuming messages
+        channel.start_consuming()

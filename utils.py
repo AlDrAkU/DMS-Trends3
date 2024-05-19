@@ -48,3 +48,12 @@ def delete_temporary_files():
     PostgreSQLFileStorageRepository().update_status_of_list(files_deleted, "DELETED")
     
     return build_response_message((" ").join(files_deleted), "Temporary files deleted successfully", "Temporary files deleted successfully")
+
+def get_config_directory():
+        # Get the directory of the app.py script
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
+    # Construct the path to the config.json file
+    config_path = os.path.join(script_dir, 'config.json')
+
+    return config_path

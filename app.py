@@ -1,15 +1,27 @@
 from flask import Flask, request, jsonify, redirect, url_for,abort
 from flasgger import Swagger
 import utils
+import json
 from rabbitmq_operations import RabbitMQOperations
 from template_operations import TemplateOperations
 from data_access.models import FileModel
+from threading import Thread
 
 app = Flask(__name__)
 swagger = Swagger(app)
 rabbitmq = RabbitMQOperations()
 template = TemplateOperations()
 
+
+# Load the configuration
+config_path = utils.get_config_directory()
+with open(config_path, 'r') as config_file:
+    config = json.load(config_file)
+    
+# Start the RabbitMQ consumer in a separate thread
+if config['rabbitmq']['consumer_enabled']:
+  consumer_thread = Thread(target=RabbitMQOperations.start_consumer)
+  consumer_thread.start()
 
 @app.route("/queue", methods=["POST"])
 def queue():
@@ -58,6 +70,7 @@ def store():
         description: XML stored successfully
     """    
     # Parse the request data into a FileModel instance
+    data = request.get_json()
     file_model = FileModel.model_validate(request.get_json())
     xml_data = file_model.data
     storage_type = file_model.storage_type
