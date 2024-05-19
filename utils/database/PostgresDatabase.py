@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import List
 
@@ -7,7 +8,13 @@ from .IDatabase import FileStorageRepository
 
 
 class PostgreSQLFileStorageRepository(FileStorageRepository):
-
+    def __init__(self, postgres_user: str ="admin", postgres_password: str = "admin", postgres_host: str = "postgres",
+                 postgres_port: str = "5432", postgres_database: str = "DMS"):
+        self.postgres_user = postgres_user
+        self.postgres_password = postgres_password
+        self.postgres_host = postgres_host
+        self.postgres_port = postgres_port
+        self.postgres_database = postgres_database
     def insert(self,correlation_id: str, filepath: str, timestamp: datetime, doctype: str, temp_or_perm: str, status: str) -> None:
         """
         Insert a new row into the FileStorage table in PostgreSQL.
@@ -88,7 +95,7 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             connection = psycopg2.connect(
                 user="postgres",
                 password="postgres", #TODO secrets.PASSWORD,
-                host="postgres",
+                host=self.postgres_host,
                 port="5432",
                 database="DMS",
             )

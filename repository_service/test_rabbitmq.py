@@ -11,7 +11,7 @@ from utils.data_access.models import FileModel
 
 import pytest
 from flask import json
-from app import app as flask_app
+from repository_service.app import app as flask_app
 from utils.rabbitmq_operations import RabbitMQOperations
 
 
@@ -33,7 +33,7 @@ class TestRabbitMQ(unittest.TestCase):
         # load thetest_store_document.json file from the /data/test_documents directory
         f = open("../data/test_documents/test_store_document.json", "r")
         self.json_test_store_document = json.load(f)
-        self.rabbitmq = RabbitMQOperations()        
+        self.rabbitmq = RabbitMQOperations(rabbitmq_host="localhost")
         self.app_context = self.app.app_context()  # Create an application context
         self.app_context.push()  # Push the application context
 

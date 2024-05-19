@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify, redirect, url_for,abort
+from flask import Flask, request, redirect, url_for,abort
 from flasgger import Swagger
 import utils
-from rabbitmq_operations import RabbitMQOperations
-from template_operations import TemplateOperations
-from data_access.models import FileModel
+from utils.rabbitmq_operations import RabbitMQOperations
+from utils.template_operations import TemplateOperations
+from utils.data_access.models import FileModel
 
 app = Flask(__name__)
 swagger = Swagger(app)

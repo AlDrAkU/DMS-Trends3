@@ -12,6 +12,7 @@ from utils.database.PostgresDatabase import PostgreSQLFileStorageRepository
 
 class TestPostgresDatabase(unittest.TestCase):
     def setUp(self):
+        self.postgres_host = os.getenv("POSTGRES_DEFAULT_HOST", "localhost")
         self.postgres = PostgreSQLFileStorageRepository()
         self.connection = self.postgres.connect()
         self.cursor = self.connection.cursor()

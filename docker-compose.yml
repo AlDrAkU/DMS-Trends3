@@ -9,6 +9,9 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: "admin"
       RABBITMQ_DEFAULT_PASS: "admin"
+      RABBITMQ_DEFAULT_HOST: "rabbitmq"
+    networks:
+      - dms-network
 
   postgres:
     image: postgres:16.2
@@ -18,8 +21,11 @@ services:
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'postgres'
       POSTGRES_DB: 'DMS'
+      POSTGRES_DEFAULT_HOST: 'postgres'
     volumes:
       - ./scripts:/docker-entrypoint-initdb.d
+    networks:
+      - dms-network
 
   viewer-service:
     build:
@@ -33,6 +39,8 @@ services:
       - ./utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
       - ../data:/app/data
+    networks:
+      - dms-network
     restart: always
 
 
@@ -48,8 +56,16 @@ services:
       - ./utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
       - ../data:/app/data
+    networks:
+      - dms-network
     restart: always
+
+
 
 volumes:
   scripts:
     driver: local
+
+networks:
+  dms-network:
+    driver: bridge

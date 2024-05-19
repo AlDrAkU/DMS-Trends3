@@ -6,6 +6,7 @@ import secrets
 from datetime import datetime
 
 import pika
+import logging
 from flask import jsonify
 
 from utils.data_access.models import InvoiceItem, InvoiceSummary, InvoiceModel, EarningItem, DeductionItem, PaycheckModel, \
@@ -15,17 +16,24 @@ from utils.utils import build_response_message, map_to_json
 
 
 class RabbitMQOperations:
-    def __init__(self):
+    def __init__(self, rabbitmq_host="rabbitmq"):
         self.connection = None
         self.channel = None
+        self.rabbitmq_host = rabbitmq_host
 
     def open_connection(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                "rabbitmq", 5672, "/", pika.PlainCredentials("admin", "admin")
+        logging.info("Attempting to connect to RabbitMQ...")
+        try:
+            self.connection = pika.BlockingConnection(
+                pika.ConnectionParameters(
+                    self.rabbitmq_host, 5672, "/", pika.PlainCredentials("admin", "admin")
+                )
             )
-        )
-        self.channel = self.connection.channel()
+            self.channel = self.connection.channel()
+            logging.info("Successfully connected to RabbitMQ.")
+        except Exception as e:
+            logging.error(f"Failed to connect to RabbitMQ: {e}")
+            raise
 
     def close_connection(self):
         if self.connection:
