@@ -191,7 +191,31 @@ class TestRabbitMQ(unittest.TestCase):
         assert os.listdir(f'./data/storage/temp/{datetime.today().date()}')
         assert os.listdir(f'./data/storage/temp/{datetime.today().date()}')[0] == f"{response_data['correlation_id']}.json"
 
-    
+    def test_post_status_queue(self):
+        ## setup the test
+        # purge the status queue
+        self.rabbitmq.purge_queue(queue_name="status_queue")
+        #clear the directory where the temporary iles are stored
+        self.clear_storage("temp")
+
+        # store a document
+        file_model = FileModel.model_validate(self.json_test_store_document)
+        xml_data = file_model.data
+        storage_type = file_model.storage_type
+        response = self.rabbitmq.store(xml_data, storage_type)
+        # Retrieve the correlation_id from the response
+        response_data = json.loads(response[0].data)
+        correlation_id = response_data["correlation_id"]
+
+        ## Exercise the code
+        # Check that the last message in the status_queue contains the correlation_id of the sent message  
+        with self.app.test_request_context():
+            response = self.rabbitmq.status_dequeue()
+
+        ## Assertions
+        response_data = json.loads(response[0].data)
+        assert response_data["correlation_id"] == correlation_id
+
     def clear_storage(self, storage_type="temp"):
         dir_path = f'./data/storage/{storage_type}/{datetime.today().date()}'
         # Check if the directory exists, then delete the directory and its contents
