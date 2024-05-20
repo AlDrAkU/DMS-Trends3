@@ -2,9 +2,11 @@ from flask import Flask, request
 from flasgger import Swagger
 from flask_cors import CORS
 from utils import utils
+import json
 from utils.rabbitmq_operations import RabbitMQOperations
 from utils.data_access.models import FileModel
 from utils.template_operations import TemplateOperations
+from threading import Thread
 
 app = Flask(__name__)
 CORS(app)
@@ -17,6 +19,16 @@ swagger = Swagger(app, template={
 })
 rabbitmq = RabbitMQOperations()
 template = TemplateOperations()
+
+# Load the configuration
+config_path = utils.get_config_directory()
+with open(config_path, 'r') as config_file:
+    config = json.load(config_file)
+
+# Start the RabbitMQ consumer in a separate thread
+if config['rabbitmq']['consumer_enabled']:
+  consumer_thread = Thread(target=RabbitMQOperations.start_consumer)
+  consumer_thread.start()
 
 @app.route("/queue", methods=["POST"])
 def queue():

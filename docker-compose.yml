@@ -51,9 +51,9 @@ services:
       - "5006:5000"
     volumes:
       - ./repository_service:/app
-      - ./utils:/app/utils
-      - ./utils/database:/app/utils/database
-      - ./utils/data_access:/app/utils/data_access
+      - ./repository_service/utils:/app/utils
+      - ./repository_service/utils/database:/app/utils/database
+      - ./repository_service/utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
       - ../data:/app/data
     networks:
