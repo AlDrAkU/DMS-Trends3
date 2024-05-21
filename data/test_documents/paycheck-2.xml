@@ -1,0 +1,32 @@
+<paycheck>
+    <documentType>Pay-01</documentType>
+    <header>
+        <title>Paycheck - September 2023</title>
+        <periodStart>01/09/2023</periodStart>
+        <periodEnd>30/09/2023</periodEnd>
+        <processingDate>25/09/2023</processingDate>
+    </header>
+    <employeeInformation>
+        <id>002</id>
+        <name>Linda Larson</name>
+        <position>Software Engineer</position>
+        <department>IT</department>
+    </employeeInformation>
+    <earnings>
+        <basicSalary>
+            <description>Basic Salary</description>
+            <amount>6000</amount>
+        </basicSalary>
+    </earnings>
+    <deductions>
+        <tax>
+            <description>Tax Deduction</description>
+            <amount>2500</amount>
+        </tax>
+    </deductions>
+    <netPay>4200</netPay>
+    <employerInformation>
+        <companyName>Tech Solutions Inc.</companyName>
+        <address>123 Innovation Drive, 4567 Tech City</address>
+    </employerInformation>
+</paycheck>

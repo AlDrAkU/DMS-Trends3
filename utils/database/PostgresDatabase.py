@@ -8,14 +8,18 @@ from .IDatabase import FileStorageRepository
 
 
 class PostgreSQLFileStorageRepository(FileStorageRepository):
-    def __init__(self, postgres_user: str ="postgres", postgres_password: str = "postgres", postgres_host: str = "postgres",
+    def __init__(self, postgres_user: str = "postgres", postgres_password: str = "postgres",
+                 postgres_host: str = "postgres",
+                 # if you are using docker-compose, use the service name else use localhost
                  postgres_port: str = "5432", postgres_database: str = "DMS"):
         self.postgres_user = postgres_user
         self.postgres_password = postgres_password
         self.postgres_host = postgres_host
         self.postgres_port = postgres_port
         self.postgres_database = postgres_database
-    def insert(self,correlation_id: str, filepath: str, timestamp: datetime, doctype: str, temp_or_perm: str, status: str) -> None:
+
+    def insert(self, correlation_id: str, filepath: str, timestamp: datetime, doctype: str, temp_or_perm: str,
+               status: str) -> None:
         """
         Insert a new row into the FileStorage table in PostgreSQL.
 
@@ -37,13 +41,13 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             with self.connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(insert_query, (correlation_id, filepath, timestamp, doctype, temp_or_perm, status))
-            
+
             # Commit the transaction
             connection.commit()
             print("Row inserted successfully!")
         except (Exception, psycopg2.Error) as error:
             print("Error while inserting into the table:", error)
-    
+
     def fetch_one(self, uuid: str):
         """
         Fetch one row from the FileStorage table by UUID.
@@ -66,7 +70,7 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
                     return row
         except (Exception, psycopg2.Error) as error:
             print("Error while fetching from the table:", error)
-    
+
     def fetch_all(self):
         """
         Fetch all rows from the FileStorage table.

@@ -11,7 +11,7 @@ class TemplateOperations:
     def paycheckTemplate(self, fileName,uuid:str = None):
         # Get the absolute path to the project directory
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if uuid:
+        if uuid is not None:
             # Fetch the data from the database
             record = PostgreSQLFileStorageRepository().fetch_one(uuid)
             mapped_record = {
@@ -46,7 +46,7 @@ class TemplateOperations:
     def invoiceTemplate(self,fileName,uuid: str = None):
         # Get the absolute path to the project directory
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if uuid:
+        if uuid is not None:
             # Fetch the data from the database
             record = PostgreSQLFileStorageRepository().fetch_one(uuid)
             mapped_record = {

@@ -1,5 +1,5 @@
 __pycache__/
 .idea/
 utils/data_access/__pycache__/
-tests/__pycache__/
-tests/.pytest_cache/
+viewer_service/tests/__pycache__/
+viewer_service/tests/.pytest_cache/

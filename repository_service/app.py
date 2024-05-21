@@ -1,12 +1,15 @@
 from flask import Flask, request
 from flasgger import Swagger
 from flask_cors import CORS
-from utils import utils
+
 import json
-from utils.rabbitmq_operations import RabbitMQOperations
-from utils.data_access.models import FileModel
-from utils.template_operations import TemplateOperations
+
 from threading import Thread
+
+from utils import util_funcs
+from utils.data_access.models import FileModel
+from utils.rabbitmq_operations import RabbitMQOperations
+from utils.template_operations import TemplateOperations
 
 app = Flask(__name__)
 CORS(app)
@@ -21,10 +24,9 @@ rabbitmq = RabbitMQOperations()
 template = TemplateOperations()
 
 # Load the configuration
-config_path = utils.get_config_directory()
+config_path = util_funcs.get_config_directory()
 with open(config_path, 'r') as config_file:
     config = json.load(config_file)
-
 # Start the RabbitMQ consumer in a separate thread
 if config['rabbitmq']['consumer_enabled']:
   consumer_thread = Thread(target=RabbitMQOperations.start_consumer)
@@ -121,7 +123,7 @@ def cleanup():
       204:
         description: Temporary files cleaned up successfully
     """
-    return utils.delete_temporary_files()
+    return util_funcs.delete_temporary_files()
 
 @app.route("/fetch_all", methods=["GET"])
 def fetchAll():

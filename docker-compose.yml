@@ -30,8 +30,11 @@ services:
   viewer-service:
     build:
       context: ./viewer_service
+    depends_on:
+      - rabbitmq
+      - postgres
     ports:
-      - "5005:5001"  # Change the host port to 5002
+      - "5005:5001"
     volumes:
       - ./viewer_service:/app
       - ./utils:/app/utils
@@ -47,13 +50,17 @@ services:
   repository-service:
     build:
       context: ./repository_service
+    command: /start.sh  # Use the start.sh script as the command
+    depends_on:
+        - rabbitmq
+        - postgres
     ports:
       - "5006:5000"
     volumes:
       - ./repository_service:/app
-      - ./repository_service/utils:/app/utils
-      - ./repository_service/utils/database:/app/utils/database
-      - ./repository_service/utils/data_access:/app/utils/data_access
+      - ./utils:/app/utils
+      - ./utils/database:/app/utils/database
+      - ./utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
       - ../data:/app/data
     networks:

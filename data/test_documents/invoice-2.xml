@@ -1,0 +1,50 @@
+<invoice>
+    <documentType>INV-01</documentType>
+    <header>
+        <companyName>HomeDepot</companyName>
+        <address>2455 Paces Ferry Rd SE, Atlanta, GA 30339</address>
+        <website>https://www.homedepot.com/</website>
+        <phone>1-800-HOME-DEPOT</phone>
+    </header>
+    <billTo>
+        <name>Wayfair</name>
+        <address>4 Copley Place, 7th Floor, Boston, MA 02116</address>
+        <email>accounts@wayfair.com</email>
+        <phone>1-844-999-0849</phone>
+    </billTo>
+    <invoiceInfo>
+        <number>6000002</number>
+        <date>20/05/2024</date>
+        <dueDate>03/06/2024</dueDate>
+    </invoiceInfo>
+    <items>
+        <item>
+            <description>Wooden Deck Planks</description>
+            <size>2x6 inches</size>
+            <finish>Natural</finish>
+            <quantity>200</quantity>
+            <unitPrice>3.00</unitPrice>
+            <total>600.00</total>
+        </item>
+        <item>
+            <description>Concrete Mix</description>
+            <size>50 lb</size>
+            <finish>Gray</finish>
+            <quantity>30</quantity>
+            <unitPrice>4.00</unitPrice>
+            <total>120.00</total>
+        </item>
+    </items>
+    <summary>
+        <subTotal>720.00</subTotal>
+        <discount>0.00</discount>
+        <totalLessDiscount>720.00</totalLessDiscount>
+        <taxRate>7.50</taxRate>
+        <totalTax>54.00</totalTax>
+        <balanceDue>774.00</balanceDue>
+    </summary>
+    <termsAndInstructions>
+        <instruction>Payment to be made via bank transfer within 14 days.</instruction>
+        <warranty>All products come with a 1-year warranty against manufacturing defects.</warranty>
+    </termsAndInstructions>
+</invoice>
