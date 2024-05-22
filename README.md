@@ -40,5 +40,16 @@ docker exec -it <container_id> psql -U postgres -d DMS
 ## Repository Service
 
 The app.py generates a swagger page where the api's can be tested. When running the application it can be accessed with this URL:
-http://localhost:5000/apidocs/
+http://127.0.0.1:5006/apidocs/
+
+<!-- Viewer Service -->
+## Viewer Service
+
+The app.py generates a swagger page where the api's can be tested. When running the application it can be accessed with this URL:
+http://127.0.0.1:5005/apidocs/
+
+<!-- DMS Viewer -->
+## DMS Viewer
+The viewer service also includes a small frontend to view the documents. The frontend can be accessed with this URL:
+http://127.0.0.1:5005/
 
