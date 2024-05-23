@@ -50,7 +50,6 @@ services:
   repository-service:
     build:
       context: ./repository_service
-    command: ["/app/start.sh"]
     depends_on:
         - rabbitmq
         - postgres
