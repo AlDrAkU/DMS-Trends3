@@ -41,7 +41,7 @@ services:
       - ./utils/database:/app/utils/database
       - ./utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
-      - ../data:/app/data
+      - ./data:/app/data
     networks:
       - dms-network
     restart: always
@@ -50,7 +50,7 @@ services:
   repository-service:
     build:
       context: ./repository_service
-    command: /start.sh  # Use the start.sh script as the command
+    command: ["/app/start.sh"]
     depends_on:
         - rabbitmq
         - postgres
@@ -62,7 +62,7 @@ services:
       - ./utils/database:/app/utils/database
       - ./utils/data_access:/app/utils/data_access
       - ./utils/templates:/app/utils/templates
-      - ../data:/app/data
+      - ./data:/app/data
     networks:
       - dms-network
     restart: always

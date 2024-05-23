@@ -34,7 +34,7 @@ def map_to_json(body):
 
 def delete_temporary_files():
     # Delete temporary files
-    project_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # Define path to the JSON file
     temp_files = os.path.join(project_dir, 'data', 'storage', 'temp')
@@ -45,9 +45,9 @@ def delete_temporary_files():
                 os.remove(os.path.join(root, file))
                 files_deleted.append(file)
         if not os.listdir(root):
-            os.rmdir(root)  # Remove the directory
+            os.rmdir(root)
 
-    PostgreSQLFileStorageRepository().update_status_of_list(files_deleted, "DELETED")
+    PostgreSQLFileStorageRepository().update_status_of_list(files_deleted, "Deleted")
     
     return build_response_message((" ").join(files_deleted), "Temporary files deleted successfully", "Temporary files deleted successfully")
 

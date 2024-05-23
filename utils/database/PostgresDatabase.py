@@ -125,7 +125,8 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             with self.connect() as connection:
                 with connection.cursor() as cursor:
                     for uuid in uuids:
-                        cursor.execute(update_query, (status, uuid))
+
+                        cursor.execute(update_query, (status, uuid.split(".")[0]))
             
             # Commit the transaction
             connection.commit()
