@@ -133,3 +133,52 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             print("Status updated successfully!")
         except (Exception, psycopg2.Error) as error:
             print("Error while updating the status of the rows:", error)
+            
+    def insert_gdpr(self, original_name: str, uuid: str) -> None:
+        """
+        Insert a new row into the Gdpr table in PostgreSQL.
+
+        :param original_name: Original name in the file
+        :param uuid: UUID
+        :return: None
+        """
+        try:
+            # SQL statement for insertion
+            insert_query = """
+            INSERT INTO Gdpr (original_name, anonymized_id)
+            VALUES (%s, %s)
+            """
+
+            # Execute the SQL statement
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(insert_query, (original_name, uuid))
+
+            # Commit the transaction
+            connection.commit()
+            print("Row inserted successfully!")
+        except (Exception, psycopg2.Error) as error:
+            print("Error while inserting into the table:", error)
+
+    def fetch_one_gdpr(self, uuid: str):
+        """
+        Fetch one row from the Gdpr table by UUID.
+
+        :param uuid: UUID
+        :return: None
+        """
+        try:
+            # SQL statement for fetching one row by anonymized_id
+            select_query = """
+            SELECT * FROM Gdpr WHERE anonymized_id = %s
+            """
+
+            # Execute the SQL statement
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(select_query, (uuid,))
+                    row = cursor.fetchone()
+                    print(row)
+                    return row
+        except (Exception, psycopg2.Error) as error:
+            print("Error while fetching from the table:", error)

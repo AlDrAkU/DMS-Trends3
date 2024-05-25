@@ -31,6 +31,12 @@ class TemplateOperations:
         # Load JSON data from file
         with open(json_file_path) as json_file:
             user_data = json.load(json_file)
+            # replace the uuid in the 'name' field with the original name
+            # retrieve the original name from the database
+            anonymized_name = user_data['name']
+            original_name = PostgreSQLFileStorageRepository().fetch_one_gdpr(anonymized_name)[1]
+            if original_name:
+                user_data['name'] = original_name
 
         # Construct the absolute path to the templates directory
         templates_dir = os.path.join(project_dir, 'utils','templates')

@@ -3,6 +3,7 @@
 import json
 import os
 import secrets
+import uuid
 from datetime import datetime
 import importlib
 import pika
@@ -410,6 +411,8 @@ class RabbitMQOperations:
                 json.dump(xml_data.to_dict(), f)
                 doctype = "Invoice"
             elif type(xml_data) == PaycheckModel:
+                # Anonymize the data
+                xml_data = RabbitMQOperations.anonymize_xml(xml_data)
                 json.dump(xml_data.to_dict(), f)
                 doctype = "Paycheck"
         # saving document uuid, name and timestamp and status to db
@@ -429,6 +432,21 @@ class RabbitMQOperations:
         with app.app_context():
             return jsonify(
                 {"status": "XML stored successfully", "uuid": file_path, "correlation_id": correlation_id}), 200
+        
+    def anonymize_xml(xml_content):
+        data_dict = xml_content.to_dict()
+        name = data_dict.get('name')
+        if name:
+            anonymized_id = RabbitMQOperations.anonymize_name(name)
+            data_dict['name'] = anonymized_id
+        
+        anonymized_xml = xml_content.parse_obj(data_dict)
+        return anonymized_xml
+    
+    def anonymize_name(original_name):
+        anonymized_id = str(uuid.uuid4())
+        PostgreSQLFileStorageRepository().insert_gdpr(original_name, anonymized_id)
+        return anonymized_id
 
     def start_consumer():
         def callback(ch, method_frame, properties, body):
