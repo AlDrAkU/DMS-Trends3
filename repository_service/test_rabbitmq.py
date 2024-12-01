@@ -2,59 +2,17 @@ from datetime import datetime
 import shutil
 import sys
 import os
-from time import sleep
 import unittest
 import xml.etree.ElementTree as ET
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from data_access.models import FileModel
+from utils.data_access.models import FileModel
 
 import pytest
 from flask import json
-from app import app as flask_app
-from rabbitmq_operations import RabbitMQOperations
-
-def get_config_directory():
-        # Get the directory of the app.py script
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-
-    # Get the parent directory
-    parent_dir = os.path.dirname(script_dir)
-
-    # Construct the path to the config.json file
-    config_path = os.path.join(parent_dir, 'config.json')
-
-    return config_path
-
-def disable_consumer():
-    config_path = get_config_directory()
-
-    # Load the configuration
-    with open(config_path, 'r') as config_file:
-        config = json.load(config_file)
-
-    # Set consumer_enabled to false
-        config['rabbitmq']['consumer_enabled'] = False
-
-    # Save the configuration
-    with open(config_path, 'w') as config_file:
-        json.dump(config, config_file, indent=4)
-
-def enable_consumer():
-    config_path = get_config_directory()
-
-    # Load the configuration
-    with open(config_path, 'r') as config_file:
-        config = json.load(config_file)
-
-    # Set consumer_enabled to true
-    config['rabbitmq']['consumer_enabled'] = True
-
-    # Save the configuration
-    with open(config_path, 'w') as config_file:
-        json.dump(config, config_file, indent=4)
-
+from repository_service.app import app as flask_app
+from utils.rabbitmq_operations import RabbitMQOperations
 
 
 @pytest.fixture
@@ -67,7 +25,6 @@ def client():
 
 class TestRabbitMQ(unittest.TestCase):
     def setUp(self):
-        disable_consumer()
         self.app = flask_app
         self.client = self.app.test_client()
         self.xml_paycheck = self.load_xml("../data/test_documents/paycheck.xml")
@@ -76,7 +33,7 @@ class TestRabbitMQ(unittest.TestCase):
         # load thetest_store_document.json file from the /data/test_documents directory
         f = open("../data/test_documents/test_store_document.json", "r")
         self.json_test_store_document = json.load(f)
-        self.rabbitmq = RabbitMQOperations()        
+        self.rabbitmq = RabbitMQOperations(rabbitmq_host="localhost")
         self.app_context = self.app.app_context()  # Create an application context
         self.app_context.push()  # Push the application context
 
@@ -254,11 +211,11 @@ class TestRabbitMQ(unittest.TestCase):
         # Check that the last message in the status_queue contains the correlation_id of the sent message  
         with self.app.test_request_context():
             response = self.rabbitmq.status_dequeue()
-            
+
         ## Assertions
         response_data = json.loads(response[0].data)
         assert response_data["correlation_id"] == correlation_id
-    
+
     def clear_storage(self, storage_type="temp"):
         dir_path = f'./data/storage/{storage_type}/{datetime.today().date()}'
         # Check if the directory exists, then delete the directory and its contents

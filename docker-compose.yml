@@ -1,13 +1,23 @@
-version: '3'
+version: '3.8'
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "5672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: "admin"
       RABBITMQ_DEFAULT_PASS: "admin"
+      RABBITMQ_DEFAULT_HOST: "rabbitmq"
+    networks:
+      - dms-network
+
   postgres:
     image: postgres:16.2
     ports:
@@ -16,9 +26,57 @@ services:
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'postgres'
       POSTGRES_DB: 'DMS'
+      POSTGRES_DEFAULT_HOST: 'postgres'
     volumes:
       - ./scripts:/docker-entrypoint-initdb.d
+    networks:
+      - dms-network
+
+  viewer-service:
+    build:
+      context: ./viewer_service
+    depends_on:
+      - rabbitmq
+      - postgres
+    ports:
+      - "5005:5001"
+    volumes:
+      - ./viewer_service:/app
+      - ./utils:/app/utils
+      - ./utils/database:/app/utils/database
+      - ./utils/data_access:/app/utils/data_access
+      - ./utils/templates:/app/utils/templates
+      - ./data:/app/data
+    networks:
+      - dms-network
+    restart: always
+
+
+  repository-service:
+    build:
+      context: ./repository_service
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+    ports:
+      - "5006:5000"
+    volumes:
+      - ./repository_service:/app
+      - ./utils:/app/utils
+      - ./utils/database:/app/utils/database
+      - ./utils/data_access:/app/utils/data_access
+      - ./utils/templates:/app/utils/templates
+      - ./data:/app/data
+    networks:
+      - dms-network
+    restart: always
+
+
 
 volumes:
   scripts:
     driver: local
+
+networks:
+  dms-network:
+    driver: bridge

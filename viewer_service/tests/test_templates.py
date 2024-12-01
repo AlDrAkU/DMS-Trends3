@@ -1,5 +1,5 @@
 import unittest
-from app import app as flask_app
+from viewer_service.app import app as flask_app
 
 class TestTemplates(unittest.TestCase):
     def setUp(self):

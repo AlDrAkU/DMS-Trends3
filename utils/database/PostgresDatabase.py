@@ -1,11 +1,25 @@
-import psycopg2
-from .IDatabase import FileStorageRepository
+import os
 from datetime import datetime
 from typing import List
 
-class PostgreSQLFileStorageRepository(FileStorageRepository):
+import psycopg2
 
-    def insert(self,correlation_id: str, filepath: str, timestamp: datetime, doctype: str, temp_or_perm: str, status: str) -> None:
+from .IDatabase import FileStorageRepository
+
+
+class PostgreSQLFileStorageRepository(FileStorageRepository):
+    def __init__(self, postgres_user: str = "postgres", postgres_password: str = "postgres",
+                 postgres_host: str = "postgres",
+                 # if you are using docker-compose, use the service name else use localhost
+                 postgres_port: str = "5432", postgres_database: str = "DMS"):
+        self.postgres_user = postgres_user
+        self.postgres_password = postgres_password
+        self.postgres_host = postgres_host
+        self.postgres_port = postgres_port
+        self.postgres_database = postgres_database
+
+    def insert(self, correlation_id: str, filepath: str, timestamp: datetime, doctype: str, temp_or_perm: str,
+               status: str) -> None:
         """
         Insert a new row into the FileStorage table in PostgreSQL.
 
@@ -27,13 +41,13 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             with self.connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(insert_query, (correlation_id, filepath, timestamp, doctype, temp_or_perm, status))
-            
+
             # Commit the transaction
             connection.commit()
             print("Row inserted successfully!")
         except (Exception, psycopg2.Error) as error:
             print("Error while inserting into the table:", error)
-    
+
     def fetch_one(self, uuid: str):
         """
         Fetch one row from the FileStorage table by UUID.
@@ -56,7 +70,7 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
                     return row
         except (Exception, psycopg2.Error) as error:
             print("Error while fetching from the table:", error)
-    
+
     def fetch_all(self):
         """
         Fetch all rows from the FileStorage table.
@@ -85,7 +99,7 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             connection = psycopg2.connect(
                 user="postgres",
                 password="postgres", #TODO secrets.PASSWORD,
-                host="localhost",
+                host=self.postgres_host,
                 port="5432",
                 database="DMS",
             )
@@ -111,10 +125,60 @@ class PostgreSQLFileStorageRepository(FileStorageRepository):
             with self.connect() as connection:
                 with connection.cursor() as cursor:
                     for uuid in uuids:
-                        cursor.execute(update_query, (status, uuid))
+
+                        cursor.execute(update_query, (status, uuid.split(".")[0]))
             
             # Commit the transaction
             connection.commit()
             print("Status updated successfully!")
         except (Exception, psycopg2.Error) as error:
             print("Error while updating the status of the rows:", error)
+            
+    def insert_gdpr(self, original_name: str, uuid: str) -> None:
+        """
+        Insert a new row into the Gdpr table in PostgreSQL.
+
+        :param original_name: Original name in the file
+        :param uuid: UUID
+        :return: None
+        """
+        try:
+            # SQL statement for insertion
+            insert_query = """
+            INSERT INTO Gdpr (original_name, anonymized_id)
+            VALUES (%s, %s)
+            """
+
+            # Execute the SQL statement
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(insert_query, (original_name, uuid))
+
+            # Commit the transaction
+            connection.commit()
+            print("Row inserted successfully!")
+        except (Exception, psycopg2.Error) as error:
+            print("Error while inserting into the table:", error)
+
+    def fetch_one_gdpr(self, uuid: str):
+        """
+        Fetch one row from the Gdpr table by UUID.
+
+        :param uuid: UUID
+        :return: None
+        """
+        try:
+            # SQL statement for fetching one row by anonymized_id
+            select_query = """
+            SELECT * FROM Gdpr WHERE anonymized_id = %s
+            """
+
+            # Execute the SQL statement
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(select_query, (uuid,))
+                    row = cursor.fetchone()
+                    print(row)
+                    return row
+        except (Exception, psycopg2.Error) as error:
+            print("Error while fetching from the table:", error)

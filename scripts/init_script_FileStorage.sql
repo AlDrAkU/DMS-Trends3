@@ -6,3 +6,9 @@ CREATE TABLE FileStorage (
     TempOrPerm VARCHAR(10) CHECK(TempOrPerm IN ('Temporary', 'Permanent')),
     Status VARCHAR(10) CHECK(Status IN ('Active', 'Deleted'))
 );
+
+CREATE TABLE Gdpr (
+    id SERIAL PRIMARY KEY,
+    original_name VARCHAR(255),
+    anonymized_id UUID
+);

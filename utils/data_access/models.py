@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import List, Union
+
 from pydantic import BaseModel, Field
 from pydantic_xml import BaseXmlModel
+
 
 class docTypeModel(BaseXmlModel):
     documentType: str = Field(..., min_length=1)

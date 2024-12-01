@@ -2,7 +2,9 @@ import datetime
 import os
 import xml.etree.ElementTree as ET
 
-from database.PostgresDatabase import PostgreSQLFileStorageRepository
+from utils.database.PostgresDatabase import PostgreSQLFileStorageRepository
+
+
 def build_response_message(correlation_id, status, message):
     response_message = {
         "correlation_id": correlation_id,
@@ -32,7 +34,7 @@ def map_to_json(body):
 
 def delete_temporary_files():
     # Delete temporary files
-    project_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     # Define path to the JSON file
     temp_files = os.path.join(project_dir, 'data', 'storage', 'temp')
@@ -43,15 +45,17 @@ def delete_temporary_files():
                 os.remove(os.path.join(root, file))
                 files_deleted.append(file)
         if not os.listdir(root):
-            os.rmdir(root)  # Remove the directory
+            os.rmdir(root)
 
-    PostgreSQLFileStorageRepository().update_status_of_list(files_deleted, "DELETED")
+    PostgreSQLFileStorageRepository().update_status_of_list(files_deleted, "Deleted")
     
     return build_response_message((" ").join(files_deleted), "Temporary files deleted successfully", "Temporary files deleted successfully")
 
 def get_config_directory():
-        # Get the directory of the app.py script
+    # Get the directory of the utils
     script_dir = os.path.dirname(os.path.realpath(__file__))
+    # Get the direcctory of the repository_service
+    script_dir = os.path.dirname(script_dir)
 
     # Construct the path to the config.json file
     config_path = os.path.join(script_dir, 'config.json')
